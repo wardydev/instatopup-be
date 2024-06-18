@@ -4,7 +4,7 @@ const dbPool = mysql.createPool({
   host: "localhost",
   user: "root",
   password: "",
-  database: "template_auth",
+  database: "toko_flix",
   connectionLimit: 10,
 });
 

@@ -14,7 +14,7 @@ dotenv.config();
 app.use(cors(corsOptions));
 app.use(express.json());
 
-app.use("/user", userRouter);
+app.use("/auth", userRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello world!");

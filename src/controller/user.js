@@ -1,8 +1,11 @@
-const { getUsersQuery } = require("../model/user");
+const { getUserByEmail } = require("../model/user");
 
-const getUsers = async (req, res) => {
-  const dataUsers = await getUsersQuery();
+const login = async (req, res) => {
+  const { email } = req.query;
 
+  console.log(email, "EMAILOSS123123");
+
+  const dataUsers = await getUserByEmail(email);
   console.log(dataUsers, "DATA USEROS");
 
   return res.status(200).json({
@@ -13,5 +16,5 @@ const getUsers = async (req, res) => {
 };
 
 module.exports = {
-  getUsers,
+  login,
 };

@@ -1,0 +1,49 @@
+============== CREATE ==============
+
+const createUser = (username, email, phoneNumber, password) => {
+  const query = 'INSERT INTO user (username, email, phoneNumber, password, createdAt) VALUES (?, ?, ?, ?, NOW())';
+  const values = [username, email, phoneNumber, password];
+  connection.execute(query, values, (err, results) => {
+    if (err) throw err;
+    console.log('User added:', results.insertId);
+  });
+};
+
+createUser('john_doe', 'john@example.com', 1234567890, 'securepassword');
+
+============== UPDATE ==============
+const updateUser = (userId, email) => {
+  const query = 'UPDATE user SET email = ? WHERE id = ?';
+  const values = [email, userId];
+  connection.execute(query, values, (err, results) => {
+    if (err) throw err;
+    console.log('User updated:', results.affectedRows);
+  });
+};
+
+updateUser(1, 'new_email@example.com');
+
+
+============== DELETE ==============
+const deleteUser = (userId) => {
+  const query = 'DELETE FROM user WHERE id = ?';
+  connection.execute(query, [userId], (err, results) => {
+    if (err) throw err;
+    console.log('User deleted:', results.affectedRows);
+  });
+};
+
+deleteUser(1);
+
+
+============== READ ==============
+const getUserById = (userId) => {
+  const query = 'SELECT * FROM user WHERE id = ?';
+  connection.execute(query, [userId], (err, results) => {
+    if (err) throw err;
+    console.log('User details:', results);
+  });
+};
+
+getUserById(1);
+
