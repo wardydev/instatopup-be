@@ -97,13 +97,6 @@ const registerUser = async (req, res) => {
   try {
     const { username, email, phoneNumber, password } = req.body;
 
-    console.log({
-      username,
-      email,
-      phoneNumber,
-      password,
-    });
-
     // Validasi input
     if (!username || !email || !phoneNumber || !password) {
       return res.status(400).json({
