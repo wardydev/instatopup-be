@@ -1,13 +1,19 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const { getUserByEmailQuery, createUserQuery } = require("../model/user.js");
+const {
+  getUserByEmailQuery,
+  createUserQuery,
+  updateUserPasswordQuery,
+  getUserById,
+  getUserByEmailAuthorizationQuery,
+} = require("../model/user.js");
 const {
   saveOtpQuery,
   getOtpByEmailQuery,
   deleteOtpQuery,
 } = require("../model/otp.js");
-const { generateOtp } = require("../helper/functions.js");
+const { generateOtp, userAuthorization } = require("../helper/functions.js");
 
 const loginUser = async (req, res) => {
   try {
@@ -59,15 +65,12 @@ const loginUser = async (req, res) => {
 
     // Kirim OTP melalui WhatsApp
     const formData = new URLSearchParams();
-    formData.append("appkey", "81ad1d11-093c-4c5b-99f9-ae32eec05090");
-    formData.append(
-      "authkey",
-      "pW1vbOQVTm0pLOoLyxjKKC4BcTePqi4ZLbNKGYzJBUAXmSy6fv"
-    );
+    formData.append("appkey", process.env.WAZOID_APP_KEY);
+    formData.append("authkey", process.env.WAZOID_AUTH_KEY);
     formData.append("to", userRecord.phoneNumber);
     formData.append("message", `Your OTP code is ${otp}`);
 
-    const response = await fetch("https://wazoid.com/api/create-message", {
+    const response = await fetch(process.env.WAZOID_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -143,6 +146,9 @@ const validateOtp = async (req, res) => {
   try {
     const { otp, email, username, phoneNumber } = req.body;
 
+    const [user] = await getUserByEmailQuery(email);
+    const userRecord = user[0];
+
     // Ambil OTP terbaru berdasarkan userId
     const [latestOtp] = await getOtpByEmailQuery(email);
 
@@ -166,6 +172,7 @@ const validateOtp = async (req, res) => {
 
     // Buat JWT token
     const payload = {
+      id: userRecord.id,
       email,
       username,
       phoneNumber,
@@ -190,8 +197,98 @@ const validateOtp = async (req, res) => {
   }
 };
 
+const getUserInfo = async (req, res) => {
+  try {
+    const { authorization } = req.headers;
+    const userSelected = userAuthorization(authorization);
+
+    // Ambil data pengguna dari database
+    const [user] = await getUserByEmailAuthorizationQuery(userSelected.email);
+
+    if (user.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Pengguna tidak ditemukan.",
+      });
+    }
+
+    const userInfo = user[0];
+
+    res.status(200).json({
+      success: true,
+      data: userInfo,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan pada server.",
+    });
+  }
+};
+
+const changePassword = async (req, res) => {
+  try {
+    const { authorization } = req.headers;
+    const userSelected = userAuthorization(authorization);
+    const { oldPassword, newPassword } = req.body;
+
+    // Validasi input
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Password lama dan password baru harus diisi.",
+      });
+    }
+
+    // Ambil data pengguna dari database
+    const [user] = await getUserById(userSelected.id);
+
+    if (user.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Pengguna tidak ditemukan.",
+      });
+    }
+
+    const userRecord = user[0];
+
+    // Periksa apakah password lama cocok
+    const isPasswordValid = await bcrypt.compare(
+      oldPassword,
+      userRecord.password
+    );
+
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Password lama salah.",
+      });
+    }
+
+    // Hash password baru
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Perbarui password di database
+    await updateUserPasswordQuery(userSelected.id, hashedPassword);
+
+    res.status(200).json({
+      success: true,
+      message: "Password berhasil diubah.",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan pada server.",
+    });
+  }
+};
+
 module.exports = {
   loginUser,
   registerUser,
   validateOtp,
+  getUserInfo,
+  changePassword,
 };
