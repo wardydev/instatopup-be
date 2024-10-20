@@ -1,20 +1,20 @@
-const mysql = require("mysql2");
+const mysql = require('mysql2')
 
 const dbPool = mysql.createPool({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "toko_flix",
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'reseller_tokoflix',
   connectionLimit: 10,
-});
+})
 
 dbPool.getConnection((err, connection) => {
   if (err) {
-    console.error("Error connecting to database:", err.message);
+    console.error('Error connecting to database:', err.message)
   } else {
-    console.log("Connected to database!");
-    connection.release();
+    console.log('Connected to database!')
+    connection.release()
   }
-});
+})
 
-module.exports = dbPool.promise();
+module.exports = dbPool.promise()
