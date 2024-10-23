@@ -33,11 +33,32 @@ const httpCreateTransaction = async (body) => {
       redirect: 'follow',
     }
     const response = await fetch(
-      `${process.env.DUITKU_URL_SANDBOX}/v2/inquiry`, //sandbox
+      'https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry', //sandbox
       requestOptions
     )
     return response.json()
   } catch (err) {
+    throw new Error()
+  }
+}
+
+const httpCheckTransaction = async (body) => {
+  try {
+    const myHeaders = new Headers()
+    myHeaders.append('Content-Type', 'application/json')
+    const requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      body: JSON.stringify(body),
+      redirect: 'follow',
+    }
+    const response = await fetch(
+      'https://sandbox.duitku.com/webapi/api/merchant/transactionStatus', // sandbox
+      requestOptions
+    )
+    return await response.json()
+  } catch (err) {
+    console.log(err)
     throw new Error()
   }
 }
@@ -65,4 +86,5 @@ module.exports = {
   errorResponse,
   httpCreateTransaction,
   httpCreateMessage,
+  httpCheckTransaction,
 }

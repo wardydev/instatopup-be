@@ -6,8 +6,16 @@ const {
   successResponse,
   httpCreateTransaction,
   httpCreateMessage,
+  httpCheckTransaction,
 } = require('../helper/http.js')
-const { getWebsiteByDomainQuery } = require('../model/user-website.js')
+const {
+  getWebsiteByDomainQuery,
+  getTransactionByInvoiceQuery,
+  updateStatusTrxQuery,
+  updateStatusUserWebsiteQuery,
+  getDomainByUserIdQuery,
+  getPhoneByidQuery,
+} = require('../model/user-website.js')
 const {
   createUserQuery,
   createUserWebsiteQuery,
@@ -18,9 +26,12 @@ const {
 const {
   generateHashWithTimestamp,
   generateQRCode,
-  generateOrderId,
   generateInvoiceId,
+  isPhoneNumberFormatValid,
+  generateSignatureCheckTranasction,
+  generateApiKey,
 } = require('../helper/functions.js')
+const { formatRupiah, formatDate } = require('../helper/formatted.js')
 
 const checkIsDomainAvalaible = async (req, res) => {
   try {
@@ -71,6 +82,15 @@ const createWebsite = async (req, res) => {
       amount,
       packageName,
     } = req.body
+
+    if (!isPhoneNumberFormatValid(phoneNumber))
+      return errorResponse({
+        res,
+        message:
+          'Format nomor HP Kamu salah, Pastikan nomor HP dimulai dari 62xxxxxxxxxxx',
+        statusCode: 400,
+      })
+
     if (!email || !fullName || !phoneNumber || !password)
       return errorResponse({
         res,
@@ -112,6 +132,7 @@ const createWebsite = async (req, res) => {
         statusCode: 400,
       })
 
+    const apiKey = generateApiKey()
     const hashedPassword = await bcrypt.hash(password, 10)
     await createUserQuery({
       email,
@@ -119,6 +140,7 @@ const createWebsite = async (req, res) => {
       phoneNumber,
       userId,
       password: hashedPassword,
+      apiKey: apiKey,
     })
 
     // website
@@ -167,6 +189,7 @@ const createWebsite = async (req, res) => {
       await createTransactionQuery({
         amount,
         invoice: invoiceId,
+        orderId: signatureKey.merchantOrderId,
         packageId,
         qrCode: qrCodeDataURL,
         userId,
@@ -187,8 +210,6 @@ Link Pembayaran: https://localhost:5173/payment?invoice=${invoiceId} 💳\n
 
 Terima kasih! 🙏
 *Tim Tokoflix* 💙`
-
-      console.log(message)
 
       await httpCreateMessage({ message: message, phone: phoneNumber })
 
@@ -213,4 +234,111 @@ Terima kasih! 🙏
   }
 }
 
-module.exports = { checkIsDomainAvalaible, createWebsite }
+const checkTransaction = async (req, res) => {
+  try {
+    const { invoice } = req.body
+
+    if (!invoice)
+      return errorResponse({
+        res,
+        message: 'Invoice tidak ditemukan',
+        statusCode: 400,
+      })
+
+    const [transactionSelected] = await getTransactionByInvoiceQuery(invoice)
+    const transactionRecord = transactionSelected[0]
+
+    const [userSelected] = await getPhoneByidQuery(transactionRecord.user_id)
+    const userRecord = userSelected[0]
+
+    const signatureKey = generateSignatureCheckTranasction(
+      transactionRecord.orderId
+    )
+    const checkResponse = await httpCheckTransaction({
+      merchantCode: process.env.DUITKU_KODE_MERCHANT,
+      merchantOrderId: transactionRecord.orderId,
+      signature: signatureKey,
+    })
+
+    console.log(checkResponse, 'check response')
+    console.log(transactionRecord, 'transaction record')
+    console.log(userSelected, 'user selected')
+    console.log(signatureKey, 'signatureKey')
+
+    if (checkResponse.statusCode === '00') {
+      await updateStatusTrxQuery({
+        invoice,
+        status: 'success',
+      })
+      await updateStatusUserWebsiteQuery({
+        userId: transactionRecord.user_id,
+        status: 'paid',
+      })
+
+      const [userDomain] = await getDomainByUserIdQuery(
+        transactionRecord.user_id
+      )
+
+      const message = `✨ Terima kasih telah bergabung sebagai reseller di Tokoflix! ✨
+
+🌐 Detail Website Anda:
+
+Domain: ${userDomain[0].domain}
+Status: paid
+Total Harga: ${formatRupiah(Number(transactionRecord.amount))}
+Tanggal Pembuatan:  ${formatDate(transactionRecord.created_at)}📅
+Invoice: ${invoice}
+Website Anda sedang dalam proses pembuatan dan akan selesai dalam waktu 1x24 jam. Silakan login ke panel kami untuk mengecek status website Anda.
+
+💬 Jika ada pertanyaan, jangan ragu untuk menghubungi kami!
+
+Terima kasih atas kepercayaan Anda kepada Tokoflix 💙 Selamat mengelola website Anda dan semoga sukses selalu! 😊`
+
+      await httpCreateMessage({
+        message: message,
+        phone: userRecord.phone_number,
+      })
+
+      successResponse({
+        res,
+        message: 'Selamat, Pembayaranmu berhasil.',
+        statusCode: 200,
+        data: {
+          status: 'success',
+        },
+      })
+    } else if (checkResponse.statusCode === '02') {
+      await updateStatusTrxQuery({
+        invoice,
+        status: 'cancel',
+      })
+      await updateStatusUserWebsiteQuery({
+        userId: transactionRecord.user_id,
+        status: 'cancel',
+      })
+      errorResponse({
+        res,
+        message: 'Pembayaran expired',
+        statusCode: 400,
+      })
+    } else {
+      successResponse({
+        res,
+        message: 'Silahkan Selesaikan pembayaranmu',
+        statusCode: 200,
+        data: {
+          status: 'pending',
+        },
+      })
+    }
+  } catch (err) {
+    console.log(err)
+    errorResponse({
+      res,
+      message: 'Terjadi kesalahan di server',
+      statusCode: 500,
+    })
+  }
+}
+
+module.exports = { checkIsDomainAvalaible, createWebsite, checkTransaction }

@@ -2,6 +2,7 @@ const express = require('express')
 const cors = require('cors')
 const dotenv = require('dotenv')
 const memberRouter = require('./routes/member.js')
+const userRouter = require('./routes/user.js')
 
 const app = express()
 const corsOptions = {
@@ -15,6 +16,7 @@ app.use(cors(corsOptions))
 app.use(express.json())
 
 app.use('/member', memberRouter)
+app.use('/user', userRouter)
 
 app.get('/', (req, res) => {
   res.send('Hello world!')

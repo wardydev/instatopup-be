@@ -2,9 +2,10 @@ const jwt = require('jsonwebtoken')
 const QRCode = require('qrcode')
 const moment = require('moment')
 const CryptoJS = require('crypto-js')
+const crypto = require('crypto')
 
 const generateOtp = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString()
+  return Math.floor(1000 + Math.random() * 9000).toString()
 }
 
 const userAuthorization = (authorization) => {
@@ -22,7 +23,7 @@ const generateHashWithTimestamp = (amount) => {
     String(amount) +
     process.env.DUITKU_APIKEY
 
-  const hash = CryptoJS.MD5(hashText).toString()
+  const hash = crypto.createHash('md5').update(hashText).digest('hex')
 
   return {
     merchantOrderId,
@@ -56,6 +57,27 @@ function generateInvoiceId() {
   return prefix + randomPart
 }
 
+const isPhoneNumberFormatValid = (phoneNumber) => {
+  return phoneNumber.startsWith('62')
+}
+
+const generateSignatureCheckTranasction = (merchantOrderId) => {
+  const hashText =
+    process.env.DUITKU_KODE_MERCHANT +
+    merchantOrderId +
+    process.env.DUITKU_APIKEY
+  const hash = crypto.createHash('md5').update(hashText).digest('hex')
+  process.env.SIGNATURE = hash
+  return hash
+}
+
+const generateApiKey = () => {
+  const crypto = require('crypto')
+  const apiKey = crypto.randomBytes(32).toString('hex')
+
+  return apiKey
+}
+
 module.exports = {
   generateOtp,
   userAuthorization,
@@ -63,4 +85,7 @@ module.exports = {
   generateQRCode,
   generateOrderId,
   generateInvoiceId,
+  isPhoneNumberFormatValid,
+  generateSignatureCheckTranasction,
+  generateApiKey,
 }

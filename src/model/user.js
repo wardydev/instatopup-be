@@ -6,15 +6,17 @@ const createUserQuery = ({
   fullName,
   phoneNumber,
   password,
+  apiKey,
 }) => {
   const SQLQuery =
-    'INSERT INTO `users` (id, email, full_name, phone_number, password) VALUES (?, ?, ?, ?, ?)'
+    'INSERT INTO `users` (id, email, full_name, phone_number, password, api_key) VALUES (?, ?, ?, ?, ?, ?)'
   return dbPool.execute(SQLQuery, [
     userId,
     email,
     fullName,
     phoneNumber,
     password,
+    apiKey,
   ])
 }
 
@@ -28,15 +30,17 @@ const createTransactionQuery = ({
   userId,
   packageId,
   invoice,
+  orderId,
   qrCode,
   amount,
 }) => {
   const SQLQuery =
-    'INSERT INTO `transaction` (user_id, package_id, invoice, qr_code, amount, status) VALUES (?,?,?,?,?,?)'
+    'INSERT INTO `transaction` (user_id, package_id, invoice,orderId, qr_code, amount, status) VALUES (?,?,?,?,?,?,?)'
   return dbPool.execute(SQLQuery, [
     userId,
     packageId,
     invoice,
+    orderId,
     qrCode,
     amount,
     'pending',
@@ -44,12 +48,53 @@ const createTransactionQuery = ({
 }
 
 const getUserByEmailQuery = (email) => {
-  const SQLQuery = 'SELECT email FROM `users` WHERE email = ?'
+  const SQLQuery =
+    'SELECT email, full_name, phone_number, password FROM `users` WHERE email = ?'
   return dbPool.execute(SQLQuery, [email])
 }
+
 const getUserByPhoneQuery = (phone) => {
-  const SQLQuery = 'SELECT phone_number FROM `users` WHERE phone_number = ?'
+  const SQLQuery =
+    'SELECT id, email, full_name, phone_number FROM `users` WHERE phone_number = ?'
   return dbPool.execute(SQLQuery, [phone])
+}
+
+const resetOtpQuery = ({ email, phoneNumber }) => {
+  const SQLQuery = 'DELETE FROM `user_otp` WHERE email = ? AND phoneNumber = ?'
+  return dbPool.execute(SQLQuery, [email, phoneNumber])
+}
+
+const deleteOtpByPhoneNumberQuery = (phoneNumber) => {
+  const SQLQuery = 'DELETE FROM `user_otp` WHERE phoneNumber = ?'
+  return dbPool.execute(SQLQuery, [phoneNumber])
+}
+
+const saveOtpQuery = (email, phoneNumber, otp, expirationTime) => {
+  const SQLQuery =
+    'INSERT INTO `user_otp` (email, phoneNumber, otp, expirationTime) VALUES (?, ?, ?, ?)'
+  return dbPool.execute(SQLQuery, [email, phoneNumber, otp, expirationTime])
+}
+
+const getOtpByPhoneNumberQuery = (phoneNumber) => {
+  const SQLQuery =
+    'SELECT otp FROM `user_otp` WHERE phoneNumber = ? ORDER BY createdAt DESC LIMIT 1'
+  return dbPool.execute(SQLQuery, [phoneNumber])
+}
+
+const getUserInfoQuery = (userId) => {
+  const SQLQuery =
+    'SELECT users.email, users.full_name, users.phone_number, user_website.domain, user_website.status FROM `users` INNER JOIN `user_website` ON users.id = user_website.user_id WHERE users.id = ?'
+  return dbPool.execute(SQLQuery, [userId])
+}
+
+const getUserIdQuery = (userId) => {
+  const SQLQuery = 'SELECT id FROM `users` WHERE id = ?'
+  return dbPool.execute(SQLQuery, [userId])
+}
+
+const updatePasswordQuery = ({ password, phoneNumber }) => {
+  const SQLQuery = 'UPDATE `users` SET password = ? WHERE phone_number = ?'
+  return dbPool.execute(SQLQuery, [password, phoneNumber])
 }
 
 module.exports = {
@@ -58,4 +103,11 @@ module.exports = {
   createTransactionQuery,
   getUserByEmailQuery,
   getUserByPhoneQuery,
+  resetOtpQuery,
+  saveOtpQuery,
+  getOtpByPhoneNumberQuery,
+  deleteOtpByPhoneNumberQuery,
+  getUserInfoQuery,
+  getUserIdQuery,
+  updatePasswordQuery,
 }

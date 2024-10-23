@@ -1,9 +1,12 @@
-const crypto = require("crypto");
+const crypto = require('crypto')
 
-const generateJwtSecret = () => {
-  const secretLength = 64; // Panjang secret yang diinginkan (dalam bytes)
-  return crypto.randomBytes(secretLength).toString("hex");
-};
+// Fungsi untuk generate secret key
+const generateSecretKey = () => {
+  // Menggunakan crypto untuk menghasilkan key acak sepanjang 32 byte
+  const secretKey = crypto.randomBytes(32).toString('hex')
+  return secretKey
+}
 
-const jwtSecret = generateJwtSecret();
-console.log("JWT_SECRET:", jwtSecret);
+// Generate secret key
+const secretKey = generateSecretKey()
+console.log('Generated Secret Key:', secretKey)
