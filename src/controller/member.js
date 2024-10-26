@@ -260,11 +260,6 @@ const checkTransaction = async (req, res) => {
       signature: signatureKey,
     })
 
-    console.log(checkResponse, 'check response')
-    console.log(transactionRecord, 'transaction record')
-    console.log(userSelected, 'user selected')
-    console.log(signatureKey, 'signatureKey')
-
     if (checkResponse.statusCode === '00') {
       await updateStatusTrxQuery({
         invoice,
@@ -341,4 +336,47 @@ Terima kasih atas kepercayaan Anda kepada Tokoflix 💙 Selamat mengelola websit
   }
 }
 
-module.exports = { checkIsDomainAvalaible, createWebsite, checkTransaction }
+const getTransaction = async (req, res) => {
+  try {
+    const { invoice } = req.query
+
+    if (!invoice)
+      return errorResponse({
+        res,
+        message: 'Invoice tidak ditemukan',
+        statusCode: 400,
+      })
+
+    const [transactionSelected] = await getTransactionByInvoiceQuery(
+      invoice.replace(/\?$/, '')
+    )
+
+    if (transactionSelected.length === 0)
+      return errorResponse({
+        res,
+        message: 'Transaksi tidak ditemukan',
+        statusCode: 400,
+      })
+
+    successResponse({
+      res,
+      message: 'Silahkan Selesaikan pembayaranmu',
+      statusCode: 200,
+      data: transactionSelected[0],
+    })
+  } catch (err) {
+    console.log(err)
+    errorResponse({
+      res,
+      message: 'Terjadi kesalahan di server',
+      statusCode: 500,
+    })
+  }
+}
+
+module.exports = {
+  checkIsDomainAvalaible,
+  createWebsite,
+  checkTransaction,
+  getTransaction,
+}

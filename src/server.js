@@ -3,6 +3,7 @@ const cors = require('cors')
 const dotenv = require('dotenv')
 const memberRouter = require('./routes/member.js')
 const userRouter = require('./routes/user.js')
+const packagesRouter = require('./routes/packages.js')
 
 const app = express()
 const corsOptions = {
@@ -17,6 +18,7 @@ app.use(express.json())
 
 app.use('/member', memberRouter)
 app.use('/user', userRouter)
+app.use('/packages', packagesRouter)
 
 app.get('/', (req, res) => {
   res.send('Hello world!')

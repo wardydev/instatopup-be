@@ -17,7 +17,7 @@ const getPhoneByidQuery = (userId) => {
 
 const getTransactionByInvoiceQuery = (invoice) => {
   const SQLQuery =
-    'SELECT id, user_id, invoice,orderId, amount, created_at FROM `transaction` WHERE invoice = ?'
+    'SELECT id, user_id, invoice,orderId,status, amount,qr_code, created_at FROM `transaction` WHERE invoice = ?'
   return dbPool.execute(SQLQuery, [invoice])
 }
 
