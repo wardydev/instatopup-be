@@ -1,0 +1,10 @@
+ const { authorization } = req.headers
+
+    if (!authorization)
+      return errorResponse({
+        res,
+        message: 'Unauthorized',
+        statusCode: 401,
+      })
+
+    const userLogin = userAuthorization(authorization)

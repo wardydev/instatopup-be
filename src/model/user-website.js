@@ -31,6 +31,18 @@ const updateStatusUserWebsiteQuery = ({ userId, status }) => {
   return dbPool.execute(SQLQuery, [status, userId])
 }
 
+const updateNewDomainQuery = ({ userId, newDomain, websiteId }) => {
+  const SQLQuery =
+    'UPDATE `user_website` SET domain = ? WHERE id = ? AND userId = ?'
+  return dbPool.execute(SQLQuery, [newDomain, websiteId, userId])
+}
+
+const listUserWebsiteQuery = (userId) => {
+  const SQLQuery =
+    'SELECT user_website.domain, user_website.status, packages.name, packages.price, packages.period_active FROM user_website JOIN packages ON user_website.package_id = packages.id WHERE user_website.user_id = ?'
+  return dbPool.execute(SQLQuery, [userId])
+}
+
 module.exports = {
   getWebsiteByDomainQuery,
   getTransactionByInvoiceQuery,
@@ -38,4 +50,6 @@ module.exports = {
   updateStatusUserWebsiteQuery,
   getDomainByUserIdQuery,
   getPhoneByidQuery,
+  updateNewDomainQuery,
+  listUserWebsiteQuery,
 }
