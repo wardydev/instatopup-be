@@ -2,7 +2,7 @@ const dbPool = require('../config/db.js')
 
 const listWithdrawalQuery = (userId) => {
   const SQLQuery =
-    'SELECT withdrawal.created_at, withdrawal.id, withdrawal.amount, user_bank_accounts.bank_name, user_bank_accounts.account_number, user_bank_accounts.account_name FROM withdrawal JOIN user_bank_accounts ON withdrawal.bank_id = user_bank_accounts.id WHERE withdrawal.user_id = ?'
+    'SELECT withdrawal.created_at, withdrawal.id, withdrawal.amount, withdrawal.status, user_bank_accounts.bank_name, user_bank_accounts.account_number, user_bank_accounts.account_name FROM withdrawal JOIN user_bank_accounts ON withdrawal.bank_id = user_bank_accounts.id WHERE withdrawal.user_id = ?'
   return dbPool.execute(SQLQuery, [userId])
 }
 

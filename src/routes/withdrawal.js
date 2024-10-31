@@ -3,9 +3,10 @@ const {
   getListWithdrawalUser,
   createRequestWithdrawal,
 } = require('../controller/withdrawal')
+const { authenticatedToken } = require('../middleware/authenticateToken')
 const router = express.Router()
 
-router.get('/', getListWithdrawalUser)
-router.post('/request', createRequestWithdrawal)
+router.get('/', authenticatedToken, getListWithdrawalUser)
+router.post('/request', authenticatedToken, createRequestWithdrawal)
 
 module.exports = router

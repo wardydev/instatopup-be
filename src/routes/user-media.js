@@ -5,7 +5,10 @@ const {
   uploadLogo,
   uploadBanner,
   deleteLogo,
+  getUserLogo,
+  getUserBanner,
 } = require('../controller/user-media.js')
+const { authenticatedToken } = require('../middleware/authenticateToken.js')
 
 const router = express.Router()
 
@@ -39,8 +42,20 @@ const uploadBannerConfig = multer({
   limits: { fileSize: 2 * 1024 * 1024 },
 })
 
-router.post('/upload-logo', upload.single('photo'), uploadLogo)
-router.post('/upload-banner', uploadBannerConfig.single('photo'), uploadBanner)
-router.delete('/:id', deleteLogo)
+router.post(
+  '/upload-logo',
+  authenticatedToken,
+  upload.single('photo'),
+  uploadLogo
+)
+router.post(
+  '/upload-banner',
+  authenticatedToken,
+  uploadBannerConfig.single('photo'),
+  uploadBanner
+)
+router.delete('/:id', authenticatedToken, deleteLogo)
+router.get('/logo', authenticatedToken, getUserLogo)
+router.get('/banner', authenticatedToken, getUserBanner)
 
 module.exports = router

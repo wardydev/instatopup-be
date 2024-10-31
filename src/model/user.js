@@ -59,6 +59,11 @@ const getUserByPhoneQuery = (phone) => {
   return dbPool.execute(SQLQuery, [phone])
 }
 
+const getUserIdByTokenQuery = (id) => {
+  const SQLQuery = 'SELECT id FROM `users` WHERE id = ?'
+  return dbPool.execute(SQLQuery, [id])
+}
+
 const resetOtpQuery = ({ email, phoneNumber }) => {
   const SQLQuery = 'DELETE FROM `user_otp` WHERE email = ? AND phoneNumber = ?'
   return dbPool.execute(SQLQuery, [email, phoneNumber])
@@ -110,4 +115,5 @@ module.exports = {
   getUserInfoQuery,
   getUserIdQuery,
   updatePasswordQuery,
+  getUserIdByTokenQuery,
 }

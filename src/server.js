@@ -8,6 +8,7 @@ const bankRouter = require('./routes/bank.js')
 const orderRouter = require('./routes/order.js')
 const mediaRouter = require('./routes/user-media.js')
 const withdrawalRouter = require('./routes/withdrawal.js')
+const balanceRouter = require('./routes/balance.js')
 
 const app = express()
 const corsOptions = {
@@ -27,6 +28,7 @@ app.use('/bank', bankRouter)
 app.use('/order', orderRouter)
 app.use('/media', mediaRouter)
 app.use('/withdrawal', withdrawalRouter)
+app.use('/balance', balanceRouter)
 
 app.get('/', (req, res) => {
   res.send('Hello world!')

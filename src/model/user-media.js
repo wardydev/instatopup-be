@@ -20,9 +20,16 @@ const createSliderQuery = ({ userId, userWebsiteId, imageUrl }) => {
   return dbPool.execute(SQLQuery, [userId, userWebsiteId, imageUrl, 'banner'])
 }
 
+const getUserMediaQuery = ({ userId, type }) => {
+  const SQLQuery =
+    'SELECT id, image_url FROM `user_media` WHERE userId = ? AND type = ?'
+  return dbPool.execute(SQLQuery, [userId, type])
+}
+
 module.exports = {
   createLogoQuery,
   deleteMediaByIdQuery,
   createSliderQuery,
   getWebsiteIdQuery,
+  getUserMediaQuery,
 }

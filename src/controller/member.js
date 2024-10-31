@@ -1,5 +1,6 @@
 const { v4: uuidv4 } = require('uuid')
 const bcrypt = require('bcrypt')
+const dns = require('dns')
 
 const {
   errorResponse,
@@ -15,6 +16,8 @@ const {
   updateStatusUserWebsiteQuery,
   getDomainByUserIdQuery,
   getPhoneByidQuery,
+  updateNewDomainQuery,
+  listUserWebsiteQuery,
 } = require('../model/user-website.js')
 const {
   createUserQuery,
@@ -30,6 +33,7 @@ const {
   isPhoneNumberFormatValid,
   generateSignatureCheckTranasction,
   generateApiKey,
+  userAuthorization,
 } = require('../helper/functions.js')
 const { formatRupiah, formatDate } = require('../helper/formatted.js')
 
@@ -374,9 +378,134 @@ const getTransaction = async (req, res) => {
   }
 }
 
+const updateNewCustomDomain = async (req, res) => {
+  try {
+    const { authorization } = req.headers
+
+    if (!authorization)
+      return errorResponse({
+        res,
+        message: 'Unauthorized',
+        statusCode: 401,
+      })
+
+    const userLogin = userAuthorization(authorization)
+
+    const { newdomain, websiteId } = req.body
+
+    if (!newdomain || !websiteId)
+      return errorResponse({
+        res,
+        message: 'Domain tidak ditemukan',
+        statusCode: 400,
+      })
+
+    await updateNewDomainQuery({
+      newDomain: newdomain,
+      userId: userLogin.id,
+      websiteId,
+    })
+
+    successResponse({
+      res,
+      message: 'Berhasil perbarui domain dengan pilihan domain custom',
+      statusCode: 200,
+    })
+  } catch (err) {
+    console.log(err)
+    errorResponse({
+      res,
+      message: 'Terjadi kesalahan di server',
+      statusCode: 500,
+    })
+  }
+}
+
+const getListUserWebsite = async (req, res) => {
+  try {
+    const { authorization } = req.headers
+
+    if (!authorization)
+      return errorResponse({
+        res,
+        message: 'Unauthorized',
+        statusCode: 401,
+      })
+
+    const userLogin = userAuthorization(authorization)
+
+    const [websiteSelected] = await listUserWebsiteQuery(userLogin.id)
+
+    successResponse({
+      res,
+      message: 'Berhasil mengambil data website',
+      statusCode: 200,
+      data: websiteSelected,
+    })
+  } catch (err) {
+    console.log(err)
+    errorResponse({
+      res,
+      message: 'Terjadi kesalahan di server',
+      statusCode: 500,
+    })
+  }
+}
+
+const checkDomainIP = (domain) => {
+  return new Promise((resolve, reject) => {
+    dns.lookup(domain, (err, address) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(address)
+      }
+    })
+  })
+}
+
+const checkIpDomain = async (req, res) => {
+  try {
+    const { domain } = req.body
+
+    if (!domain)
+      return errorResponse({
+        res,
+        message: 'Parameter domain tidak boleh kosong',
+        statusCode: 400,
+      })
+
+    const targetIP = '191.96.31.58'
+    const domainIP = await checkDomainIP(domain)
+    if (domainIP === targetIP) {
+      successResponse({
+        res,
+        message: 'IP Domain sudah sesuai',
+        statusCode: 200,
+      })
+    } else {
+      errorResponse({
+        res,
+        message: 'IP domain tidak sesuai',
+        statusCode: 400,
+      })
+    }
+  } catch (err) {
+    console.log(err)
+    errorResponse({
+      res,
+      message: 'Terjadi kesalahan di server',
+      statusCode: 500,
+    })
+  }
+}
+
 module.exports = {
   checkIsDomainAvalaible,
   createWebsite,
   checkTransaction,
   getTransaction,
+  updateNewCustomDomain,
+  getListUserWebsite,
+  checkIpDomain,
 }

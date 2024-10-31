@@ -5,7 +5,10 @@ const {
 } = require('../helper/formatted')
 const { userAuthorization } = require('../helper/functions')
 const { errorResponse, successResponse } = require('../helper/http')
-const { getDashboardChartsQuery } = require('../model/order')
+const {
+  getDashboardChartsQuery,
+  getChartOrderByDayQuery,
+} = require('../model/order')
 
 const getDashboardChart = async (req, res) => {
   try {
@@ -28,6 +31,33 @@ const getDashboardChart = async (req, res) => {
       userId: userLogin.id,
     })
 
+    const daysInMonth = new Date(year, month, 0).getDate()
+    const incomeByDay = []
+
+    const [transacationChartsDay] = await getChartOrderByDayQuery({
+      month,
+      year,
+      userId: userLogin.id,
+    })
+
+    console.log(transacationChartsDay, 'CHARTS')
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = `${year}-${String(month).padStart(2, '0')}-${String(
+        day
+      ).padStart(2, '0')}`
+
+      const transaction = transacationChartsDay.find((t) => {
+        const transactionDate = new Date(t.date).toISOString().split('T')[0]
+        return transactionDate === date
+      })
+
+      incomeByDay.push({
+        date,
+        amount: transaction ? transaction.amount : 0,
+      })
+    }
+
     const chartResponse = {
       income: dataDashboard[0].total_pendapatan,
       incomeMonth: dataDashboard[0].total_pendapatan_bulan_ini,
@@ -42,6 +72,7 @@ const getDashboardChart = async (req, res) => {
             Number(dataDashboard[0].total_pendapatan_hari_ini)
           )
         ) + '%',
+      charts: incomeByDay,
     }
 
     successResponse({

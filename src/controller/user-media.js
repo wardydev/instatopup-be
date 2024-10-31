@@ -5,6 +5,7 @@ const {
   getWebsiteIdQuery,
   createSliderQuery,
   deleteMediaByIdQuery,
+  getUserMediaQuery,
 } = require('../model/user-media')
 
 const uploadLogo = async (req, res) => {
@@ -171,8 +172,77 @@ const deleteLogo = async (req, res) => {
   }
 }
 
+const getUserLogo = async (req, res) => {
+  try {
+    const { authorization } = req.headers
+
+    if (!authorization)
+      return errorResponse({
+        res,
+        message: 'Unauthorized',
+        statusCode: 401,
+      })
+
+    const userLogin = userAuthorization(authorization)
+
+    const [logoSelected] = await getUserMediaQuery({
+      userId: userLogin.id,
+      type: 'logo',
+    })
+
+    successResponse({
+      res,
+      message: 'Berhasil mengambil logo',
+      statusCode: 200,
+      data: logoSelected,
+    })
+  } catch (err) {
+    console.log(err)
+    return errorResponse({
+      res,
+      message: 'Terjadi Kesalahan di server',
+      statusCode: 500,
+    })
+  }
+}
+const getUserBanner = async (req, res) => {
+  try {
+    const { authorization } = req.headers
+
+    if (!authorization)
+      return errorResponse({
+        res,
+        message: 'Unauthorized',
+        statusCode: 401,
+      })
+
+    const userLogin = userAuthorization(authorization)
+
+    const [bannerSelected] = await getUserMediaQuery({
+      userId: userLogin.id,
+      type: 'banner',
+    })
+
+    successResponse({
+      res,
+      message: 'Berhasil mengambil gambar banner',
+      statusCode: 200,
+      data: bannerSelected,
+    })
+  } catch (err) {
+    console.log(err)
+    return errorResponse({
+      res,
+      message: 'Terjadi Kesalahan di server',
+      statusCode: 500,
+    })
+  }
+}
+
 module.exports = {
   uploadLogo,
   uploadBanner,
   deleteLogo,
+  getUserLogo,
+  getUserBanner,
 }

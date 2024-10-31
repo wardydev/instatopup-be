@@ -4,12 +4,13 @@ const {
   createUserBank,
   updateUserBank,
   deleteUserBank,
-} = require('../controller/bank')
+} = require('../controller/bank.js')
+const { authenticatedToken } = require('../middleware/authenticateToken.js')
 const router = express.Router()
 
-router.get('/', getUserBank)
-router.post('/', createUserBank)
-router.patch('/:bankId', updateUserBank)
-router.delete('/:bankId', deleteUserBank)
+router.get('/', authenticatedToken, getUserBank)
+router.post('/', authenticatedToken, createUserBank)
+router.patch('/:bankId', authenticatedToken, updateUserBank)
+router.delete('/:bankId', authenticatedToken, deleteUserBank)
 
 module.exports = router

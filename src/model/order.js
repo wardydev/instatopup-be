@@ -12,6 +12,17 @@ const getDashboardChartsQuery = ({ month, year, userId }) => {
   return dbPool.execute(SQLQuery, [month, year, userId])
 }
 
+const getChartOrderByDayQuery = ({ month, year, userId }) => {
+  const SQLQuery = `SELECT DATE(created_at) AS date, 
+              COALESCE(SUM(total_price), 0) AS amount
+       FROM \`order\`
+       WHERE MONTH(created_at) = ? AND YEAR(created_at) = ? AND user_id = ?
+       GROUP BY DATE(created_at)`
+
+  return dbPool.execute(SQLQuery, [month, year, userId])
+}
+
 module.exports = {
   getDashboardChartsQuery,
+  getChartOrderByDayQuery,
 }

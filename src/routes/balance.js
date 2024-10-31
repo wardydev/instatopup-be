@@ -1,9 +1,8 @@
 const express = require('express')
-const { getDashboardChart } = require('../controller/order.js')
+const { getUserBalance } = require('../controller/balance.js')
 const { authenticatedToken } = require('../middleware/authenticateToken.js')
-
 const router = express.Router()
 
-router.get('/dashboard', authenticatedToken, getDashboardChart)
+router.get('/', authenticatedToken, getUserBalance)
 
 module.exports = router

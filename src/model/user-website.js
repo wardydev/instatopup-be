@@ -33,13 +33,13 @@ const updateStatusUserWebsiteQuery = ({ userId, status }) => {
 
 const updateNewDomainQuery = ({ userId, newDomain, websiteId }) => {
   const SQLQuery =
-    'UPDATE `user_website` SET domain = ? WHERE id = ? AND userId = ?'
+    'UPDATE `user_website` SET domain = ?, status = "paid" WHERE id = ? AND user_id = ?'
   return dbPool.execute(SQLQuery, [newDomain, websiteId, userId])
 }
 
 const listUserWebsiteQuery = (userId) => {
   const SQLQuery =
-    'SELECT user_website.domain, user_website.status, packages.name, packages.price, packages.period_active FROM user_website JOIN packages ON user_website.package_id = packages.id WHERE user_website.user_id = ?'
+    'SELECT user_website.id, user_website.domain, user_website.status, packages.name, packages.price, packages.period_active FROM user_website JOIN packages ON user_website.package_id = packages.id WHERE user_website.user_id = ?'
   return dbPool.execute(SQLQuery, [userId])
 }
 
