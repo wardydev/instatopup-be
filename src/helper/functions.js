@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken')
 const QRCode = require('qrcode')
 const moment = require('moment')
-const CryptoJS = require('crypto-js')
 const crypto = require('crypto')
 
 const generateOtp = () => {
@@ -78,6 +77,22 @@ const generateApiKey = () => {
   return apiKey
 }
 
+const createSignatureVCGamer = (params) => {
+  const secret = `8aa3a704a9c2af43c636df2e59828777`
+  const hmac = crypto.createHmac('sha512', secret).update(params).digest('hex')
+  return Buffer.from(hmac).toString('base64')
+}
+
+const generateTrxId = () => {
+  const timestamp = Date.now()
+
+  const randomDigits = Math.floor(100 + Math.random() * 900)
+
+  const trxId = `TRX-${timestamp}${randomDigits}`
+
+  return trxId
+}
+
 module.exports = {
   generateOtp,
   userAuthorization,
@@ -88,4 +103,6 @@ module.exports = {
   isPhoneNumberFormatValid,
   generateSignatureCheckTranasction,
   generateApiKey,
+  createSignatureVCGamer,
+  generateTrxId,
 }

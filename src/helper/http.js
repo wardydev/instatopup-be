@@ -81,10 +81,48 @@ const httpCreateMessage = async ({ message, phone }) => {
   return response
 }
 
+const httpVcGamer = async (url) => {
+  try {
+    const myHeaders = new Headers()
+    myHeaders.append('Authorization', `Bearer ${process.env.VCGAMERS_TOKEN}`)
+    const requestOptions = {
+      method: 'GET',
+      headers: myHeaders,
+      redirect: 'follow',
+    }
+    const response = await fetch(url, requestOptions)
+    return response.json()
+  } catch (err) {
+    throw new Error()
+  }
+}
+
+const httpVcGamerCreateOrder = async (url, formData) => {
+  try {
+    var myHeaders = new Headers()
+    myHeaders.append('Authorization', `Bearer ${process.env.VCGAMERS_TOKEN}`)
+    myHeaders.append('Content-Type', 'application/json')
+
+    var requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      body: formData,
+      redirect: 'follow',
+    }
+
+    const res = await fetch(url, requestOptions)
+    return await res.json()
+  } catch (err) {
+    throw new Error()
+  }
+}
+
 module.exports = {
   successResponse,
   errorResponse,
   httpCreateTransaction,
   httpCreateMessage,
   httpCheckTransaction,
+  httpVcGamer,
+  httpVcGamerCreateOrder,
 }

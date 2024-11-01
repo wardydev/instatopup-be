@@ -22,7 +22,32 @@ const getChartOrderByDayQuery = ({ month, year, userId }) => {
   return dbPool.execute(SQLQuery, [month, year, userId])
 }
 
+const createOrderQuery = ({
+  userId,
+  productId,
+  invoice,
+  price,
+  data,
+  qrCode,
+  merchantId,
+}) => {
+  const SQLQuery =
+    'INSERT INTO `order` (user_id, product_id, invoice, quantity, total_price, data, status, qr_code, merchant_id) VALUES (?,?,?,?,?,?,?,?,?)'
+  return dbPool.execute(SQLQuery, [
+    userId,
+    productId,
+    invoice,
+    1,
+    price,
+    data,
+    'pending',
+    qrCode,
+    merchantId,
+  ])
+}
+
 module.exports = {
   getDashboardChartsQuery,
   getChartOrderByDayQuery,
+  createOrderQuery,
 }
