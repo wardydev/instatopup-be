@@ -46,8 +46,22 @@ const createOrderQuery = ({
   ])
 }
 
+const getOrderByTrxidQuery = (trxId) => {
+  const SQLQuery =
+    'SELECT user_id, invoice, total_price, data, status, qr_code, merchant_id, brand_key, variation_key FROM `order` WHERE invoice = ?'
+  return dbPool.execute(SQLQuery, [trxId])
+}
+
+const updateOrderStatusQuery = async ({ userId, status, trxId }) => {
+  const SQLQuery =
+    'UPDATE `order` SET status = ? WHERE user_id = ? AND invoice = ?'
+  return dbPool.execute(SQLQuery, [status, userId, trxId])
+}
+
 module.exports = {
   getDashboardChartsQuery,
   getChartOrderByDayQuery,
   createOrderQuery,
+  getOrderByTrxidQuery,
+  updateOrderStatusQuery,
 }

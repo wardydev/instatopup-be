@@ -5,4 +5,10 @@ const getUserBalanceQuery = (userId) => {
   return dbPool.execute(SQLQuery, [userId])
 }
 
-module.exports = { getUserBalanceQuery }
+const updateBalanceUserQuery = ({ userId, totalBalance, amount }) => {
+  const SQLQuery =
+    'INSERT INTO `user_balance` (user_id, balance, transaction_amount, transaction_type) VALUES (?, ?, ?, ?)'
+  return dbPool.execute(SQLQuery, [userId, totalBalance, amount, '+'])
+}
+
+module.exports = { getUserBalanceQuery, updateBalanceUserQuery }
