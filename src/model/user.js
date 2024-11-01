@@ -102,6 +102,11 @@ const updatePasswordQuery = ({ password, phoneNumber }) => {
   return dbPool.execute(SQLQuery, [password, phoneNumber])
 }
 
+const getUserByApiKeyQuery = (apiKey) => {
+  const SQLQuery = 'SELECT id, api_key FROM users WHERE api_key = ?'
+  return dbPool.execute(SQLQuery, [apiKey])
+}
+
 module.exports = {
   createUserQuery,
   createUserWebsiteQuery,
@@ -116,4 +121,5 @@ module.exports = {
   getUserIdQuery,
   updatePasswordQuery,
   getUserIdByTokenQuery,
+  getUserByApiKeyQuery,
 }
