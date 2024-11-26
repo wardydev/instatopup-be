@@ -60,7 +60,8 @@ const getUserByPhoneQuery = (phone) => {
 }
 
 const getUserIdByTokenQuery = (id) => {
-  const SQLQuery = 'SELECT id FROM `users` WHERE id = ?'
+  const SQLQuery =
+    'SELECT id, api_key, full_name, email, phone_number FROM `users` WHERE id = ?'
   return dbPool.execute(SQLQuery, [id])
 }
 

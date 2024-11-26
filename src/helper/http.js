@@ -33,11 +33,12 @@ const httpCreateTransaction = async (body) => {
       redirect: 'follow',
     }
     const response = await fetch(
-      'https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry', //sandbox
+      'https://passport.duitku.com/webapi/api/merchant/v2/inquiry', //sandbox
       requestOptions
     )
     return response.json()
   } catch (err) {
+    console.log(err)
     throw new Error()
   }
 }
@@ -53,12 +54,11 @@ const httpCheckTransaction = async (body) => {
       redirect: 'follow',
     }
     const response = await fetch(
-      'https://sandbox.duitku.com/webapi/api/merchant/transactionStatus', // sandbox
+      'https://passport.duitku.com/webapi/api/merchant/transactionStatus',
       requestOptions
     )
     return await response.json()
   } catch (err) {
-    console.log(err)
     throw new Error()
   }
 }

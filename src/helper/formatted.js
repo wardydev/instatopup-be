@@ -53,6 +53,19 @@ function calculatePercentageIncrease(previousAmount, currentAmount) {
   return percentageIncrease
 }
 
+function formattedInvoice(invoice) {
+  // Ambil karakter pertama dan terakhir setelah "TRX-"
+  const firstChar = invoice[4]
+  const lastChar = invoice[invoice.length - 1]
+
+  // Buat string dengan format "TRX-1**************3"
+  const formatted = `TRX-${firstChar}${'*'.repeat(
+    invoice.length - 6
+  )}${lastChar}`
+
+  return formatted
+}
+
 module.exports = {
   formatRupiah,
   formatDate,
@@ -60,4 +73,5 @@ module.exports = {
   getYesterdayIndonesianDayName,
   calculatePercentageIncrease,
   formatDateTimestamp,
+  formattedInvoice,
 }

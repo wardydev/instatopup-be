@@ -3,6 +3,7 @@ const {
   getIndonesianDayName,
   getYesterdayIndonesianDayName,
   calculatePercentageIncrease,
+  formattedInvoice,
 } = require('../helper/formatted')
 const {
   userAuthorization,
@@ -26,12 +27,16 @@ const {
   createOrderQuery,
   getOrderByTrxidQuery,
   updateOrderStatusQuery,
+  updateTrxIdQuery,
+  getHistoryOrderQuery,
+  getOrderByUserTrxidQuery,
 } = require('../model/order')
 const { getUserByApiKeyQuery } = require('../model/user')
 const {
   updateBalanceUserQuery,
   getUserBalanceQuery,
 } = require('../model/balance')
+const { getProductByBrandKeyQuery } = require('../model/products')
 
 const getDashboardChart = async (req, res) => {
   try {
@@ -161,7 +166,7 @@ const createOrder = async (req, res) => {
       })
 
     const trxId = generateTrxId()
-    const signatureKey = generateHashWithTimestamp(formData.price)
+    const signatureKey = generateHashWithTimestamp(Number(formData.price))
     const bodyDeposit = {
       merchantCode: process.env.DUITKU_KODE_MERCHANT,
       paymentAmount: Number(formData.price),
@@ -203,6 +208,105 @@ const createOrder = async (req, res) => {
         userId,
         productId: formData.productId,
         merchantId: signatureKey.merchantOrderId,
+        brandKey: formData.brand_key,
+        variationKey: formData.variation_key,
+      })
+      successResponse({
+        res,
+        message:
+          'Berhasil membuat order baru, Silahkan selesaikan pembayaranmu',
+        statusCode: 200,
+        data: {
+          transaction_id: trxId,
+        },
+      })
+    }
+  } catch (err) {
+    console.log(err)
+    errorResponse({
+      res,
+      message: 'Terjadi kesalahan di server',
+      statusCode: 500,
+    })
+  }
+}
+
+const createOrderFlashSale = async (req, res) => {
+  try {
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+
+    const [userSelected] = await getUserByApiKeyQuery(token)
+    const userId = userSelected[0].id
+
+    const formData = req.body
+
+    if (!formData.brand_key)
+      return errorResponse({
+        res,
+        message: 'Produk tidak ditemukan',
+        statusCode: 400,
+      })
+
+    if (!formData.variation_key)
+      return errorResponse({
+        res,
+        message: 'Produk item tidak ditemukan',
+        statusCode: 400,
+      })
+
+    if (!formData.price)
+      return errorResponse({
+        res,
+        message: 'Harga tidak ditemukan',
+        statusCode: 400,
+      })
+
+    const trxId = generateTrxId()
+    const signatureKey = generateHashWithTimestamp(Number(formData.price))
+    const bodyDeposit = {
+      merchantCode: process.env.DUITKU_KODE_MERCHANT,
+      paymentAmount: Number(formData.price),
+      paymentMethod: 'SP',
+      merchantOrderId: signatureKey.merchantOrderId,
+      productDetails: `Create order product ${formData.variation_key}`,
+      customerVaName: 'Wardigital Indonesia',
+      email: 'wardigitalid@gmail.com',
+      phoneNumber: '087754175829',
+      itemDetails: [
+        {
+          name: `${formData.variation_key}`,
+          price: Number(formData.price),
+          quantity: 1,
+        },
+      ],
+      customerDetail: {
+        firstName: 'Wardigital',
+        lastName: 'Indonesia',
+        email: 'wardigitalid@gmail.com',
+        phoneNumber: '087754175829',
+      },
+      callbackUrl: '/',
+      returnUrl: '/',
+      signature: signatureKey.signature,
+      expiryPeriod: 15,
+    }
+
+    const responseTransaction = await httpCreateTransaction(bodyDeposit)
+
+    if (responseTransaction.statusCode === '00') {
+      const qrCodeDataURL = await generateQRCode(responseTransaction.qrString)
+      // CREATE ORDER
+      await createOrderQuery({
+        data: JSON.stringify(formData.data),
+        invoice: trxId,
+        price: Number(formData.price),
+        qrCode: qrCodeDataURL,
+        userId,
+        productId: formData.productId,
+        merchantId: signatureKey.merchantOrderId,
+        brandKey: formData.brand_key,
+        variationKey: formData.variation_key,
       })
       successResponse({
         res,
@@ -226,19 +330,23 @@ const createOrder = async (req, res) => {
 
 const createPayment = async (req, res) => {
   try {
-    const { trx_id } = req.query
+    const trx_id = req.query.trx_id.replace(/\?$/, '')
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+
+    const [userSelected] = await getUserByApiKeyQuery(token)
 
     if (!trx_id)
       return errorResponse({
         res,
-        message: 'Pesanan tidak ditemukan, Pastikan id transaksi benar',
+        message: 'Transaksi tidak ditemukan, Pastikan id transaksi benar',
         statusCode: 404,
       })
 
-    const [orderSelected] = await getOrderByTrxidQuery(trx_id)
-    const orderRecord = orderSelected[0]
-
-    console.log(orderRecord, 'ORDER RECORD')
+    const [orderSelected] = await getOrderByUserTrxidQuery(
+      trx_id,
+      userSelected[0].id
+    )
 
     if (orderSelected.length === 0)
       return errorResponse({
@@ -247,19 +355,42 @@ const createPayment = async (req, res) => {
         statusCode: 404,
       })
 
+    const orderRecord = orderSelected[0]
+    const [productSelected] = await getProductByBrandKeyQuery(
+      orderRecord.brand_key
+    )
+    const productRecord = productSelected[0]
+
+    if (orderSelected[0].status === 'success')
+      return successResponse({
+        res,
+        message: 'Pesanan sukses',
+        statusCode: 200,
+        data: {
+          status: 'success',
+          transaction_id: orderRecord.invoice,
+          total_price: orderRecord.total_price,
+          imageUrl: productRecord.image_url,
+          itemName: orderRecord.variation_key,
+          productName: productRecord.name,
+          data: orderRecord.data,
+          createdAt: orderRecord.created_at,
+          activeTab: 2,
+        },
+      })
+
     // check payment
     const signatureKey = generateSignatureCheckTranasction(
-      orderRecord.merchant_id
+      String(orderRecord.merchant_id)
     )
+
     const checkResponse = await httpCheckTransaction({
       merchantCode: process.env.DUITKU_KODE_MERCHANT,
-      merchantOrderId: orderRecord.merchant_id,
+      merchantOrderId: String(orderRecord.merchant_id),
       signature: signatureKey,
     })
 
-    console.log(checkResponse, 'CHECK PAYMENT RESPONSE')
-
-    if (checkResponse.statusCode === '00') {
+    if (checkResponse?.statusCode === '00') {
       // create order
       const timeStamps = moment().unix()
       const createOrderBody = {
@@ -270,6 +401,7 @@ const createPayment = async (req, res) => {
         data: JSON.parse(orderRecord.data),
         timestamp: String(timeStamps),
       }
+
       const paramsCreateOrderSignature =
         `${process.env.VCGAMERS_SECRET}` +
         'order' +
@@ -287,28 +419,25 @@ const createPayment = async (req, res) => {
         JSON.stringify(createOrderBody)
       )
 
-      console.log(responseOrder, 'RESPONSE ORDER')
-
-      if (responseOrder.code === 400)
-        return errorResponse({
+      if (responseOrder.status === 'NOT_FOUND')
+        return successResponse({
           res,
-          message:
-            'Order gagal dibuat, Silahkan lakukan konfirmasi ke admin untuk ajukan pengembalian dana',
-          statusCode: 400,
-        })
-
-      if (responseOrder.code === 404)
-        return errorResponse({
-          res,
-          message:
-            'Produk tidak ditemukan, Silahkan lakukan konfirmasi ke admin untuk ajukan pengembalian dana',
-          statusCode: 404,
+          message: 'Order tidak ditemukan',
+          statusCode: 200,
+          data: {
+            activeTab: 5,
+          },
         })
 
       if (responseOrder.status === 'SUCCESS') {
+        await updateTrxIdQuery({
+          invoice: orderRecord.invoice,
+          userId: orderRecord.user_id,
+          trxId: responseOrder.data.trx_code,
+        })
         const [balanceSelected] = await getUserBalanceQuery(orderRecord.user_id)
         await updateOrderStatusQuery({
-          status: 'paid',
+          status: 'success',
           trxId: orderRecord.invoice,
           userId: orderRecord.user_id,
         })
@@ -319,6 +448,7 @@ const createPayment = async (req, res) => {
           totalBalance:
             Number(orderRecord.total_price) +
             Number(balanceSelected[0].balance),
+          description: 'purchase',
         })
 
         successResponse({
@@ -329,6 +459,12 @@ const createPayment = async (req, res) => {
             status: 'success',
             transaction_id: orderRecord.invoice,
             total_price: orderRecord.total_price,
+            imageUrl: productRecord.image_url,
+            itemName: orderRecord.variation_key,
+            productName: productRecord.name,
+            data: orderRecord.data,
+            createdAt: orderRecord.created_at,
+            activeTab: 2,
           },
         })
       }
@@ -338,13 +474,16 @@ const createPayment = async (req, res) => {
         trxId: orderRecord.invoice,
         userId: orderRecord.user_id,
       })
-      errorResponse({
+      return successResponse({
         res,
-        message: 'Pembayaran expired',
-        statusCode: 400,
+        message: 'Pembayaran Expired',
+        statusCode: 200,
+        data: {
+          activeTab: 4,
+        },
       })
     } else {
-      successResponse({
+      return successResponse({
         res,
         message: 'Status pembayaran pending',
         statusCode: 200,
@@ -352,6 +491,13 @@ const createPayment = async (req, res) => {
           status: 'pending',
           transaction_id: orderRecord.invoice,
           total_price: orderRecord.total_price,
+          qrCode: orderRecord.qr_code,
+          imageUrl: productRecord.image_url,
+          itemName: orderRecord.variation_key,
+          productName: productRecord.name,
+          data: orderRecord.data,
+          createdAt: orderRecord.created_at,
+          activeTab: 1,
         },
       })
     }
@@ -367,7 +513,12 @@ const createPayment = async (req, res) => {
 
 const checkStatusProduct = async (req, res) => {
   try {
-    const { trx_id } = req.body
+    const trx_id = req.query.trx_id.replace(/\?$/, '')
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+
+    const [userSelected] = await getUserByApiKeyQuery(token)
+
     if (!trx_id)
       return errorResponse({
         res,
@@ -375,22 +526,35 @@ const checkStatusProduct = async (req, res) => {
         statusCode: 400,
       })
 
-    const [orderSelected] = await getOrderByTrxidQuery(trx_id)
+    const [orderSelected] = await getOrderByUserTrxidQuery(
+      trx_id,
+      userSelected[0].id
+    )
+
+    if (orderSelected.length === 0)
+      return errorResponse({
+        res,
+        message: 'Pesanan tidak ditemukan',
+        statusCode: 404,
+      })
+
     const orderRecord = orderSelected[0]
 
     const paramsSignature =
-      `${process.env.VCGAMERS_SECRET}` + 'orderstatus' + orderRecord.invoice
+      `${process.env.VCGAMERS_SECRET}` + 'orderstatus' + orderRecord.trx_id
     const signature = createSignatureVCGamer(paramsSignature)
-    const URL_ORDER_STATUS = `${process.env.VCGAMERS_URL_V2}/order-status?sign=${signature}&tid=${orderRecord.invoice}`
+    const URL_ORDER_STATUS = `${process.env.VCGAMERS_URL_V2}/order-status?sign=${signature}&tid=${orderRecord.trx_id}`
     const response = await httpVcGamer(URL_ORDER_STATUS)
-
-    console.log(response, 'response')
 
     if (response.data.status === 1)
       return successResponse({
         res,
         message: 'Transaksi Kamu sedang di proses, Silahkan menunggu sebentar',
         statusCode: 200,
+        data: {
+          status: 'pending',
+          activeTab: 2,
+        },
       })
 
     if (
@@ -407,8 +571,77 @@ const checkStatusProduct = async (req, res) => {
         res,
         message: `Mohon maaf produk kosong, Pesanan dengan id transaksi ${trx_id} gagal di proses`,
         statusCode: 200,
+        data: {
+          activeTab: 6,
+        },
       })
     }
+
+    if (response?.data?.status === 2) {
+      await updateOrderStatusQuery({
+        status: 'success',
+        trxId: orderRecord.invoice,
+        userId: orderRecord.user_id,
+      })
+
+      const responseJson = {
+        productId: orderRecord.product_id,
+        productName: response?.data.detail.variation_name,
+        brandKey: orderRecord.brand_key,
+        variationKey: orderRecord.variation_key,
+        invoice: orderRecord.invoice,
+        quantity: orderRecord.quantity,
+        totalPrice: orderRecord.total_price,
+        data: orderRecord.data,
+        status: orderRecord.status,
+        date: orderRecord.created_at,
+        historyStatus: response?.data.history_status,
+        voucherCode: response?.data.detail.voucher_code,
+        activeTab: 3,
+      }
+
+      return successResponse({
+        res,
+        message: `Pesanan berhasil dibuat`,
+        statusCode: 200,
+        data: responseJson,
+      })
+    }
+  } catch (err) {
+    console.log(err)
+    errorResponse({
+      res,
+      message: 'Terjadi kesalahan di server',
+      statusCode: 500,
+    })
+  }
+}
+
+const getTransaction = async (req, res) => {
+  try {
+    const { invoice } = req.query
+
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+
+    const [userSelected] = await getUserByApiKeyQuery(token)
+    const userRecord = userSelected[0]
+
+    const [orderSelected] = await getHistoryOrderQuery({
+      invoice,
+      userId: userRecord.id,
+    })
+    const orderDataUpdated = orderSelected.map((item) => ({
+      ...item,
+      invoice: formattedInvoice(item.invoice),
+    }))
+
+    successResponse({
+      res,
+      message: `Pesanan berhasil diambil`,
+      statusCode: 200,
+      data: orderDataUpdated,
+    })
   } catch (err) {
     console.log(err)
     errorResponse({
@@ -424,4 +657,6 @@ module.exports = {
   createOrder,
   checkStatusProduct,
   createPayment,
+  getTransaction,
+  createOrderFlashSale,
 }

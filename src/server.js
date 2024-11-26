@@ -10,6 +10,11 @@ const mediaRouter = require('./routes/user-media.js')
 const withdrawalRouter = require('./routes/withdrawal.js')
 const balanceRouter = require('./routes/balance.js')
 const productRouter = require('./routes/product.js')
+const categoryRouter = require('./routes/category.js')
+const flashSaleRouter = require('./routes/flashSales.js')
+const userProductRouter = require('./routes/userProduct.js')
+// rest api
+const restApiRouter = require('./routes/restApi/index.js')
 
 const app = express()
 const corsOptions = {
@@ -31,6 +36,11 @@ app.use('/media', mediaRouter)
 app.use('/withdrawal', withdrawalRouter)
 app.use('/balance', balanceRouter)
 app.use('/products', productRouter)
+app.use('/category', categoryRouter)
+app.use('/flash-sale', flashSaleRouter)
+app.use('/user-product', userProductRouter)
+// rest api
+app.use('/api/v1', restApiRouter)
 
 app.get('/', (req, res) => {
   res.send('Hello world!')
