@@ -104,7 +104,8 @@ const updatePasswordQuery = ({ password, phoneNumber }) => {
 }
 
 const getUserByApiKeyQuery = (apiKey) => {
-  const SQLQuery = 'SELECT id, api_key FROM users WHERE api_key = ?'
+  const SQLQuery =
+    'SELECT id, api_key, full_name, email, phone_number FROM users WHERE api_key = ?'
   return dbPool.execute(SQLQuery, [apiKey])
 }
 

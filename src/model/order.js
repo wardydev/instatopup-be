@@ -86,6 +86,35 @@ const updateTrxIdQuery = ({ userId, invoice, trxId }) => {
   return dbPool.execute(SQLQuery, [trxId, userId, invoice])
 }
 
+const createOrderRestQuery = ({
+  userId,
+  productId,
+  invoice,
+  price,
+  data,
+  qrCode,
+  merchantId,
+  brandKey,
+  variationKey,
+  status,
+}) => {
+  const SQLQuery =
+    'INSERT INTO `order` (user_id, product_id, invoice, quantity, total_price, data, status, qr_code, merchant_id, brand_key, variation_key) VALUES (?,?,?,?,?,?,?,?,?,?,?)'
+  return dbPool.execute(SQLQuery, [
+    userId,
+    productId,
+    invoice,
+    1,
+    price,
+    data,
+    status,
+    qrCode,
+    merchantId,
+    brandKey,
+    variationKey,
+  ])
+}
+
 module.exports = {
   getDashboardChartsQuery,
   getChartOrderByDayQuery,
@@ -95,4 +124,5 @@ module.exports = {
   updateTrxIdQuery,
   getHistoryOrderQuery,
   getOrderByUserTrxidQuery,
+  createOrderRestQuery,
 }

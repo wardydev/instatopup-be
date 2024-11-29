@@ -19,7 +19,7 @@ const getUserBalance = async (req, res) => {
 
     successResponse({
       res,
-      message: 'Berhasil menghapus user bank',
+      message: 'Berhasil mengambil saldo user',
       statusCode: 200,
       data: userBalanceSelected[0],
     })

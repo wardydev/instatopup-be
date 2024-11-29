@@ -1,6 +1,7 @@
 const { errorResponse } = require('../helper/http')
 const { getIpWhitelistUserQuery } = require('../model/ipAddress')
 const { getUserByApiKeyQuery } = require('../model/user')
+const rateLimit = require('express-rate-limit')
 
 const apiKeyAndIpWhitelistMiddleware = async (req, res, next) => {
   try {
@@ -54,6 +55,14 @@ const apiKeyAndIpWhitelistMiddleware = async (req, res, next) => {
   }
 }
 
+const apiLimiterRestApi = rateLimit({
+  windowMs: 60 * 1000,
+  max: 200,
+  message: 'Terlalu banyak request dari IP ini, coba lagi nanti.',
+  statusCode: 400,
+})
+
 module.exports = {
   apiKeyAndIpWhitelistMiddleware,
+  apiLimiterRestApi,
 }

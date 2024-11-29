@@ -9,6 +9,7 @@ const {
   getUserBanner,
 } = require('../controller/user-media.js')
 const { authenticatedToken } = require('../middleware/authenticateToken.js')
+const { apiLimiterRestApi } = require('../middleware/customer.js')
 
 const router = express.Router()
 
@@ -54,8 +55,8 @@ router.post(
   uploadBannerConfig.single('photo'),
   uploadBanner
 )
-router.delete('/:id', authenticatedToken, deleteLogo)
-router.get('/logo', authenticatedToken, getUserLogo)
-router.get('/banner', authenticatedToken, getUserBanner)
+router.delete('/:id', authenticatedToken, apiLimiterRestApi, deleteLogo)
+router.get('/logo', authenticatedToken, apiLimiterRestApi, getUserLogo)
+router.get('/banner', authenticatedToken, apiLimiterRestApi, getUserBanner)
 
 module.exports = router

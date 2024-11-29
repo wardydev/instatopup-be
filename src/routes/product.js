@@ -8,21 +8,45 @@ const {
   getVariantBrandKeyUser,
   getUserProducts,
 } = require('../controller/products.js')
-const { apiKeyAndIpWhitelistMiddleware } = require('../middleware/customer.js')
+const {
+  apiKeyAndIpWhitelistMiddleware,
+  apiLimiterRestApi,
+} = require('../middleware/customer.js')
 const { authenticatedToken } = require('../middleware/authenticateToken.js')
 
 const router = express.Router()
 
-router.get('/', apiKeyAndIpWhitelistMiddleware, getProducts)
-router.get('/users', authenticatedToken, getUserProducts)
-router.get('/:brand_key', apiKeyAndIpWhitelistMiddleware, getVariantBrandKey)
-router.get('/users/:brand_key', authenticatedToken, getVariantBrandKeyUser)
+router.get('/', apiKeyAndIpWhitelistMiddleware, apiLimiterRestApi, getProducts)
+router.get('/users', authenticatedToken, apiLimiterRestApi, getUserProducts)
+router.get(
+  '/:brand_key',
+  apiKeyAndIpWhitelistMiddleware,
+  apiLimiterRestApi,
+  getVariantBrandKey
+)
+router.get(
+  '/users/:brand_key',
+  authenticatedToken,
+  apiLimiterRestApi,
+  getVariantBrandKeyUser
+)
 router.post(
   '/create/:brand_key',
   apiKeyAndIpWhitelistMiddleware,
+  apiLimiterRestApi,
   createUserProductPrice
 )
-router.patch('/update', apiKeyAndIpWhitelistMiddleware, updateUserProductPrice)
-router.get('/delete', apiKeyAndIpWhitelistMiddleware, deleteUserProductPrice)
+router.patch(
+  '/update',
+  apiKeyAndIpWhitelistMiddleware,
+  apiLimiterRestApi,
+  updateUserProductPrice
+)
+router.get(
+  '/delete',
+  apiKeyAndIpWhitelistMiddleware,
+  apiLimiterRestApi,
+  deleteUserProductPrice
+)
 
 module.exports = router

@@ -1,5 +1,8 @@
 const express = require('express')
-const { apiKeyAndIpWhitelistMiddleware } = require('../middleware/customer.js')
+const {
+  apiKeyAndIpWhitelistMiddleware,
+  apiLimiterRestApi,
+} = require('../middleware/customer.js')
 const {
   getFlashSales,
   createNewFlashSales,
@@ -11,18 +14,40 @@ const { createOrderFlashSale } = require('../controller/order.js')
 
 const router = express.Router()
 
-router.get('/', apiKeyAndIpWhitelistMiddleware, getFlashSales)
-router.post('/', apiKeyAndIpWhitelistMiddleware, createNewFlashSales)
+router.get(
+  '/',
+  apiKeyAndIpWhitelistMiddleware,
+  apiLimiterRestApi,
+  getFlashSales
+)
+router.post(
+  '/',
+  apiKeyAndIpWhitelistMiddleware,
+  apiLimiterRestApi,
+  createNewFlashSales
+)
 router.post(
   '/create-order',
   apiKeyAndIpWhitelistMiddleware,
+  apiLimiterRestApi,
   createOrderFlashSale
 )
-router.patch('/:flashSaleId', apiKeyAndIpWhitelistMiddleware, updateFlashSales)
-router.delete('/:flashSaleId', apiKeyAndIpWhitelistMiddleware, deleteFlashSales)
+router.patch(
+  '/:flashSaleId',
+  apiKeyAndIpWhitelistMiddleware,
+  apiLimiterRestApi,
+  updateFlashSales
+)
+router.delete(
+  '/:flashSaleId',
+  apiKeyAndIpWhitelistMiddleware,
+  apiLimiterRestApi,
+  deleteFlashSales
+)
 router.patch(
   '/status/:flashSaleId',
   apiKeyAndIpWhitelistMiddleware,
+  apiLimiterRestApi,
   updateStatusFlashSales
 )
 

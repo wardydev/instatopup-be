@@ -7,13 +7,14 @@ const {
   resetPassword,
 } = require('../controller/user.js')
 const { authenticatedToken } = require('../middleware/authenticateToken.js')
+const { apiLimiterRestApi } = require('../middleware/customer.js')
 
 const router = express.Router()
 
-router.post('/auth/login', loginUser)
-router.post('/auth/verify', verifyOtp)
-router.get('/', authenticatedToken, getUserInfo)
-router.post('/reset-password-otp', sendOTPResetPassword)
-router.post('/reset-password', resetPassword)
+router.post('/auth/login', apiLimiterRestApi, loginUser)
+router.post('/auth/verify', apiLimiterRestApi, verifyOtp)
+router.get('/', authenticatedToken, apiLimiterRestApi, getUserInfo)
+router.post('/reset-password-otp', apiLimiterRestApi, sendOTPResetPassword)
+router.post('/reset-password', apiLimiterRestApi, resetPassword)
 
 module.exports = router
