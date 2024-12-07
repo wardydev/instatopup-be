@@ -19,22 +19,14 @@ const restApiRouter = require('./routes/restApi/index.js')
 const adminRouter = require('./routes/admin/index.js')
 
 const app = express()
-const allowedOrigins = [
-  'http://127.0.0.1:5500',
-  'http://localhost:5173',
-  'http://localhost:5174',
-]
 
 const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true)
-    } else {
-      callback(new Error('Not allowed by CORS'))
-    }
-  },
+  origin: ['http://127.0.0.1:5500/index.html'],
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Length', 'X-Kuma-Revision'],
+  optionsSuccessStatus: 204,
 }
 
 dotenv.config()
