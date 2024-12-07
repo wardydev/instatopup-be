@@ -33,7 +33,7 @@ const httpCreateTransaction = async (body) => {
       redirect: 'follow',
     }
     const response = await fetch(
-      'https://passport.duitku.com/webapi/api/merchant/v2/inquiry', //sandbox
+      'https://passport.duitku.com/webapi/api/merchant/v2/inquiry',
       requestOptions
     )
     return response.json()
