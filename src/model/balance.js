@@ -3,7 +3,7 @@ const dbPool = require('../config/db.js')
 const getUserBalanceQuery = (userId) => {
   const SQLQuery =
     'SELECT balance FROM `user_balance` WHERE user_id = ? AND description = ?'
-  return dbPool.execute(SQLQuery, [userId, 'pruchase'])
+  return dbPool.execute(SQLQuery, [userId, 'purchase'])
 }
 
 const updateBalanceUserQuery = ({

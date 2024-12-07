@@ -9,8 +9,6 @@ const apiKeyAndIpWhitelistMiddleware = async (req, res, next) => {
     const token = authHeader && authHeader.split(' ')[1]
     const clientIp = req.ip
 
-    console.log(clientIp)
-
     if (!token || !authHeader)
       return errorResponse({
         res,
