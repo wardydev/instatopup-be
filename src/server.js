@@ -19,6 +19,7 @@ const restApiRouter = require('./routes/restApi/index.js')
 const adminRouter = require('./routes/admin/index.js')
 
 const app = express()
+app.set('trust proxy', 1)
 const corsOptions = {
   origin: [
     'http://localhost:5173',
