@@ -20,15 +20,12 @@ const adminRouter = require('./routes/admin/index.js')
 
 const app = express()
 const corsOptions = {
-  origin: [
-    'https://mitra.tokoflix.id',
-    'https://admin.tokoflix.id',
-    'https://tokoflix.id',
-    'https://wardyflix.my.id',
-    'https://wardy.wardyflix.my.id',
-    'http://localhost:5173',
-  ],
+  origin: ['http://localhost:5173', 'http://localhost:5500/'],
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Length', 'X-Kuma-Revision'],
+  optionsSuccessStatus: 204,
 }
 app.use(cors(corsOptions))
 
