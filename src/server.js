@@ -29,10 +29,6 @@ const corsOptions = {
     'http://localhost:5173',
   ],
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  exposedHeaders: ['Content-Length', 'X-Kuma-Revision'],
-  optionsSuccessStatus: 204,
 }
 app.use(cors(corsOptions))
 
