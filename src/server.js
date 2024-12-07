@@ -21,13 +21,21 @@ const adminRouter = require('./routes/admin/index.js')
 const app = express()
 
 const corsOptions = {
-  origin: ['http://localhost:5500'],
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  origin: (origin, callback) => {
+    const allowedOrigins = ['http://localhost:5500']
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   exposedHeaders: ['Content-Length', 'X-Kuma-Revision'],
   optionsSuccessStatus: 204,
 }
+app.use(cors(corsOptions))
 
 dotenv.config()
 app.use(cors(corsOptions))
