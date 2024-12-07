@@ -21,7 +21,7 @@ const adminRouter = require('./routes/admin/index.js')
 const app = express()
 
 const corsOptions = {
-  origin: ['http://127.0.0.1:5500/index.html'],
+  origin: ['http://localhost:5500'],
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
