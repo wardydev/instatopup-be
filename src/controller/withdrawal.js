@@ -78,7 +78,12 @@ const createRequestWithdrawal = async (req, res) => {
     //   check balance
     const [balanceSelected] = await getTotalBalanceQuery(userLogin.id)
 
-    console.log(balanceSelected)
+    if (balanceSelected.length === 0)
+      return errorResponse({
+        res,
+        message: 'Saldo tidak ditemukan',
+        statusCode: 400,
+      })
 
     if (Number(amount) > Number(balanceSelected[0].balance))
       return errorResponse({

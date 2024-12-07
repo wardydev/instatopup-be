@@ -20,10 +20,22 @@ const createUserQuery = ({
   ])
 }
 
-const createUserWebsiteQuery = ({ userId, packageId, domain }) => {
+const createUserWebsiteQuery = ({
+  userId,
+  packageId,
+  domain,
+  status,
+  expiredAt,
+}) => {
   const SQLQuery =
-    'INSERT INTO `user_website` (user_id, package_id, domain) VALUES (?, ?, ?)'
-  return dbPool.execute(SQLQuery, [userId, packageId, domain])
+    'INSERT INTO `user_website` (user_id, package_id, domain, status, expired_at) VALUES (?, ?, ?, ?, ?)'
+  return dbPool.execute(SQLQuery, [
+    userId,
+    packageId,
+    domain,
+    status,
+    expiredAt,
+  ])
 }
 
 const createTransactionQuery = ({
@@ -89,7 +101,7 @@ const getOtpByPhoneNumberQuery = (phoneNumber) => {
 
 const getUserInfoQuery = (userId) => {
   const SQLQuery =
-    'SELECT users.email, users.full_name, users.phone_number, user_website.domain, user_website.status FROM `users` INNER JOIN `user_website` ON users.id = user_website.user_id WHERE users.id = ?'
+    'SELECT users.email, users.api_key, users.full_name, users.phone_number, user_website.domain, user_website.status FROM `users` INNER JOIN `user_website` ON users.id = user_website.user_id WHERE users.id = ?'
   return dbPool.execute(SQLQuery, [userId])
 }
 

@@ -13,8 +13,10 @@ const productRouter = require('./routes/product.js')
 const categoryRouter = require('./routes/category.js')
 const flashSaleRouter = require('./routes/flashSales.js')
 const userProductRouter = require('./routes/userProduct.js')
+const depositRouter = require('./routes/deposit.js')
 // rest api
 const restApiRouter = require('./routes/restApi/index.js')
+const adminRouter = require('./routes/admin/index.js')
 
 const app = express()
 const corsOptions = {
@@ -39,8 +41,11 @@ app.use('/products', productRouter)
 app.use('/category', categoryRouter)
 app.use('/flash-sale', flashSaleRouter)
 app.use('/user-product', userProductRouter)
+app.use('/deposit', depositRouter)
 // rest api
 app.use('/api/v1', restApiRouter)
+// admin
+app.use('/admin', adminRouter)
 
 app.get('/', (req, res) => {
   res.send('Hello world!')

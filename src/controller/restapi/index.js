@@ -31,6 +31,8 @@ const {
   createDepositQuery,
   getDepositByTrxIdQuery,
   updateDepositStatusQuery,
+  historyDepositListsQuery,
+  getTotalDepositHistoryQuery,
 } = require('../../model/restApi')
 const {
   getUserIdByTokenQuery,
@@ -85,15 +87,8 @@ const getRestUserBalance = async (req, res) => {
 const createDeposit = async (req, res) => {
   try {
     const { authorization } = req.headers
-
-    if (!authorization)
-      return errorResponse({
-        res,
-        message: 'Unauthorized',
-        statusCode: 401,
-      })
-
     const userLogin = userAuthorization(authorization)
+
     const [userSelected] = await getUserIdByTokenQuery(userLogin.id)
 
     const { amount } = req.body
@@ -173,23 +168,12 @@ const createDeposit = async (req, res) => {
 
 const checkDeposit = async (req, res) => {
   try {
-    const { sign, trxId } = req.query
+    const { authorization } = req.headers
+    const userLogin = userAuthorization(authorization)
 
-    if (!sign)
-      return errorResponse({
-        res,
-        message: 'Signature not found',
-        statusCode: 401,
-      })
+    const { trxId } = req.query
 
-    const [userSelected] = await getUserByApiKeyQuery(sign)
-
-    if (userSelected.length === 0)
-      return errorResponse({
-        res,
-        message: 'Signature invalid',
-        statusCode: 401,
-      })
+    const [userSelected] = await getUserIdByTokenQuery(userLogin.id)
 
     if (!trxId)
       return errorResponse({
@@ -270,6 +254,47 @@ const checkDeposit = async (req, res) => {
         },
       })
     }
+  } catch (err) {
+    console.log(err)
+    errorResponse({
+      res,
+      message: 'An error occurred on the server',
+      statusCode: 500,
+    })
+  }
+}
+
+const getHistoryDeposit = async (req, res) => {
+  try {
+    const { authorization } = req.headers
+    const userLogin = userAuthorization(authorization)
+
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 10
+    const offset = (page - 1) * limit
+
+    const [historyLists] = await historyDepositListsQuery({
+      userId: userLogin.id,
+      offset,
+      limit,
+    })
+
+    const [[{ total }]] = await getTotalDepositHistoryQuery(userLogin.id)
+    console.log(getTotalDepositHistoryQuery)
+    const totalPages = Math.ceil(total / limit)
+
+    successResponse({
+      res,
+      message: 'Berhasil mengambil data history deposit',
+      statusCode: 200,
+      data: historyLists,
+      meta: {
+        page,
+        limit,
+        totalRecords: total,
+        totalPages,
+      },
+    })
   } catch (err) {
     console.log(err)
     errorResponse({
@@ -766,6 +791,31 @@ const checkRestOrder = async (req, res) => {
   }
 }
 
+const getUserDepositBalance = async (req, res) => {
+  try {
+    const { authorization } = req.headers
+    const userLogin = userAuthorization(authorization)
+
+    const [balanceSelected] = await getUserBalanceDepositQuery(userLogin.id)
+
+    return successResponse({
+      res,
+      message: 'Berhasil mengambil saldo deposit user',
+      statusCode: 200,
+      data: {
+        balance: balanceSelected.length === 0 ? 0 : balanceSelected[0].balance,
+      },
+    })
+  } catch (err) {
+    console.log(err)
+    return errorResponse({
+      res,
+      message: 'An error occurred on the server',
+      statusCode: 500,
+    })
+  }
+}
+
 module.exports = {
   createDeposit,
   checkDeposit,
@@ -774,4 +824,6 @@ module.exports = {
   checkRestOrder,
   createOrderRestApi,
   getRestUserBalance,
+  getHistoryDeposit,
+  getUserDepositBalance,
 }

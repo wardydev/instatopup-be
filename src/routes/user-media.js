@@ -8,7 +8,10 @@ const {
   getUserLogo,
   getUserBanner,
 } = require('../controller/user-media.js')
-const { authenticatedToken } = require('../middleware/authenticateToken.js')
+const {
+  authenticatedToken,
+  checkUserPackage,
+} = require('../middleware/authenticateToken.js')
 const { apiLimiterRestApi } = require('../middleware/customer.js')
 
 const router = express.Router()
@@ -46,12 +49,14 @@ const uploadBannerConfig = multer({
 router.post(
   '/upload-logo',
   authenticatedToken,
+  checkUserPackage,
   upload.single('photo'),
   uploadLogo
 )
 router.post(
   '/upload-banner',
   authenticatedToken,
+  checkUserPackage,
   uploadBannerConfig.single('photo'),
   uploadBanner
 )

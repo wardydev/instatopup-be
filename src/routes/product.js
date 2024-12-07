@@ -7,6 +7,8 @@ const {
   deleteUserProductPrice,
   getVariantBrandKeyUser,
   getUserProducts,
+  getLandingProduct,
+  getVariantLandingBrandKey,
 } = require('../controller/products.js')
 const {
   apiKeyAndIpWhitelistMiddleware,
@@ -18,6 +20,8 @@ const router = express.Router()
 
 router.get('/', apiKeyAndIpWhitelistMiddleware, apiLimiterRestApi, getProducts)
 router.get('/users', authenticatedToken, apiLimiterRestApi, getUserProducts)
+router.get('/landing', apiLimiterRestApi, getLandingProduct)
+router.get('/landing/:brand_key', apiLimiterRestApi, getVariantLandingBrandKey)
 router.get(
   '/:brand_key',
   apiKeyAndIpWhitelistMiddleware,

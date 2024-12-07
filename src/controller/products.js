@@ -15,6 +15,7 @@ const {
   createProductPriceQuery,
   updateUserProductQuery,
   deleteUserProductPriceQuery,
+  getProductsLandingQuery,
 } = require('../model/products')
 const { getUserIdByTokenQuery } = require('../model/user')
 const {
@@ -59,6 +60,66 @@ const getProducts = async (req, res) => {
     return errorResponse({
       res,
       message: 'Terjadi Kesalahan di server',
+      statusCode: 500,
+    })
+  }
+}
+
+const getLandingProduct = async (req, res) => {
+  try {
+    const { q } = req.query
+    const [productSelected] = await getProductsLandingQuery()
+
+    successResponse({
+      res,
+      message: 'Berhasil mengambil semua produk',
+      statusCode: 200,
+      data: productSelected,
+    })
+  } catch (err) {
+    console.log(err)
+    return errorResponse({
+      res,
+      message: 'Terjadi Kesalahan di server',
+      statusCode: 500,
+    })
+  }
+}
+
+const getVariantLandingBrandKey = async (req, res) => {
+  try {
+    const { brand_key } = req.params
+    if (!brand_key)
+      return errorResponse({
+        res,
+        message: 'Brand key tidak ditemukan',
+        statusCode: 400,
+      })
+
+    const paramsSignature =
+      `${process.env.VCGAMERS_SECRET}` + 'variation' + brand_key
+    const signature = createSignatureVCGamer(paramsSignature)
+    const URL_VARIATION = `${process.env.VCGAMERS_URL_V2}/variations?sign=${signature}&brand_key=${brand_key}`
+    const response = await httpVcGamer(URL_VARIATION)
+
+    if (response.code !== 200)
+      return errorResponse({
+        res,
+        message: 'Gagal mengambil detail produk',
+        statusCode: 400,
+      })
+
+    successResponse({
+      res,
+      message: 'Berhasil mengambil semua data',
+      statusCode: 200,
+      data: response?.data,
+    })
+  } catch (err) {
+    console.log(err)
+    errorResponse({
+      res,
+      message: 'Terjadi kesalahan di server',
       statusCode: 500,
     })
   }
@@ -427,4 +488,6 @@ module.exports = {
   hideUserProduct,
   showUserProduct,
   getUserProducts,
+  getLandingProduct,
+  getVariantLandingBrandKey,
 }

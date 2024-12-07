@@ -43,6 +43,26 @@ const listUserWebsiteQuery = (userId) => {
   return dbPool.execute(SQLQuery, [userId])
 }
 
+const getStatusWebsiteQuery = (userId) => {
+  const SQLQuery = 'SELECT status FROM `user_website` WHERE user_id = ?'
+  return dbPool.execute(SQLQuery, [userId])
+}
+
+const getInvoiceQuery = (userId) => {
+  const SQLQuery = 'SELECT invoice from transaction WHERE user_id = ?'
+  return dbPool.execute(SQLQuery, [userId])
+}
+
+const getUserSubscription = (userId) => {
+  const SQLQuery = 'SELECT package_id FROM user_website WHERE user_id = ?'
+  return dbPool.execute(SQLQuery, [userId])
+}
+
+const getStatusUserWebsiteQuery = (userId) => {
+  const SQLQuery = 'SELECT status, domain FROM `user_website` WHERE user_id = ?'
+  return dbPool.execute(SQLQuery, [userId])
+}
+
 module.exports = {
   getWebsiteByDomainQuery,
   getTransactionByInvoiceQuery,
@@ -52,4 +72,8 @@ module.exports = {
   getPhoneByidQuery,
   updateNewDomainQuery,
   listUserWebsiteQuery,
+  getStatusWebsiteQuery,
+  getInvoiceQuery,
+  getUserSubscription,
+  getStatusUserWebsiteQuery,
 }

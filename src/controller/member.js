@@ -18,6 +18,8 @@ const {
   getPhoneByidQuery,
   updateNewDomainQuery,
   listUserWebsiteQuery,
+  getStatusWebsiteQuery,
+  getStatusUserWebsiteQuery,
 } = require('../model/user-website.js')
 const {
   createUserQuery,
@@ -25,6 +27,7 @@ const {
   createTransactionQuery,
   getUserByEmailQuery,
   getUserByPhoneQuery,
+  getUserIdQuery,
 } = require('../model/user.js')
 const {
   generateHashWithTimestamp,
@@ -36,6 +39,7 @@ const {
   userAuthorization,
 } = require('../helper/functions.js')
 const { formatRupiah, formatDate } = require('../helper/formatted.js')
+const { updateBalanceUserRestQuery } = require('../model/balance.js')
 
 const checkIsDomainAvalaible = async (req, res) => {
   try {
@@ -111,13 +115,6 @@ const createWebsite = async (req, res) => {
         statusCode: 400,
       })
 
-    if (!domain)
-      return errorResponse({
-        res,
-        message: 'Kolom domain wajib diisi',
-        statusCode: 400,
-      })
-
     // user
     const [userWithEmailSelected] = await getUserByEmailQuery(email)
     const [userWithPhoneSelected] = await getUserByPhoneQuery(phoneNumber)
@@ -148,10 +145,13 @@ const createWebsite = async (req, res) => {
     })
 
     // website
+    let today = new Date().setMonth(new Date().getMonth() + 12)
     await createUserWebsiteQuery({
-      domain,
+      domain: domain || null,
       packageId,
       userId,
+      status: 'pending',
+      expiredAt: new Date(today).toISOString().slice(0, 19).replace('T', ' '),
     })
 
     // transaction
@@ -500,6 +500,42 @@ const checkIpDomain = async (req, res) => {
   }
 }
 
+const getUserWebsiteStatus = async (req, res) => {
+  try {
+    const { authorization } = req.headers
+    const userLogin = userAuthorization(authorization)
+
+    const [userSelected] = await getUserIdQuery(userLogin.id)
+
+    if (userSelected.length === 0)
+      return errorResponse({
+        res,
+        message: 'User tidak ditemukan',
+        statusCode: 400,
+      })
+
+    const [userWebsiteStatus] = await getStatusUserWebsiteQuery(
+      userSelected[0].id
+    )
+    successResponse({
+      res,
+      message: 'IP Domain sudah sesuai',
+      statusCode: 200,
+      data: {
+        status: userWebsiteStatus[0].status,
+        domain: userWebsiteStatus[0].domain,
+      },
+    })
+  } catch (err) {
+    console.log(err)
+    errorResponse({
+      res,
+      message: 'Terjadi kesalahan di server',
+      statusCode: 500,
+    })
+  }
+}
+
 module.exports = {
   checkIsDomainAvalaible,
   createWebsite,
@@ -508,4 +544,5 @@ module.exports = {
   updateNewCustomDomain,
   getListUserWebsite,
   checkIpDomain,
+  getUserWebsiteStatus,
 }

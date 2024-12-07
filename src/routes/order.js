@@ -6,7 +6,10 @@ const {
   checkStatusProduct,
   getTransaction,
 } = require('../controller/order.js')
-const { authenticatedToken } = require('../middleware/authenticateToken.js')
+const {
+  authenticatedToken,
+  checkStatusWebsite,
+} = require('../middleware/authenticateToken.js')
 const {
   apiKeyAndIpWhitelistMiddleware,
   apiLimiterRestApi,
@@ -18,6 +21,7 @@ router.get(
   '/dashboard',
   authenticatedToken,
   apiLimiterRestApi,
+  checkStatusWebsite,
   getDashboardChart
 )
 router.post(

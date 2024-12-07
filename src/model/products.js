@@ -10,6 +10,11 @@ const getProductsQuery = (q) => {
     return dbPool.execute(SQLQuery)
   }
 }
+const getProductsLandingQuery = () => {
+  const SQLQuery =
+    'SELECT id, brand_key, name FROM product ORDER BY is_fire DESC'
+  return dbPool.execute(SQLQuery)
+}
 
 const getProductByBrandKeyQuery = (brandKey) => {
   const SQLQuery = 'SELECT * FROM `product` WHERE brand_key = ?'
@@ -66,4 +71,5 @@ module.exports = {
   createProductPriceQuery,
   updateUserProductQuery,
   deleteUserProductPriceQuery,
+  getProductsLandingQuery,
 }
