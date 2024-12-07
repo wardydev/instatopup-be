@@ -19,8 +19,20 @@ const restApiRouter = require('./routes/restApi/index.js')
 const adminRouter = require('./routes/admin/index.js')
 
 const app = express()
+const allowedOrigins = [
+  'http://127.0.0.1:5500',
+  'http://localhost:5173',
+  'http://localhost:5174',
+]
+
 const corsOptions = {
-  origin: ['http://127.0.0.1:5500'],
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
 }
