@@ -58,7 +58,7 @@ const uploadLogo = async (req, res) => {
       message: 'Berhasil upload logo',
       statusCode: 200,
       data: {
-        location: fileLocation,
+        location: fileUrl,
       },
     })
   } catch (err) {
@@ -121,7 +121,7 @@ const uploadBanner = async (req, res) => {
       message: 'Berhasil upload banner',
       statusCode: 200,
       data: {
-        location: fileLocation,
+        location: fileUrl,
       },
     })
   } catch (err) {
