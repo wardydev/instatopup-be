@@ -7,6 +7,7 @@ const {
   httpCreateMessage,
 } = require('../helper/http')
 const { getBankQuery } = require('../model/bank')
+const { getUserIdByTokenQuery } = require('../model/user')
 const {
   listWithdrawalQuery,
   getTotalBalanceQuery,
@@ -64,6 +65,7 @@ const createRequestWithdrawal = async (req, res) => {
       })
 
     const userLogin = userAuthorization(authorization)
+    const [[userSelected]] = getUserIdByTokenQuery(userLogin.id)
 
     const { amount, bankId, bankName } = req.body
 
@@ -122,7 +124,7 @@ const createRequestWithdrawal = async (req, res) => {
     })
 
     // tambahkan pesan ke owner kalau ada user sedang melakukan penarikan
-    const message = `Halo, ${userLogin.full_name}!
+    const message = `Halo, ${userSelected.full_name}!
 
 Kami telah menerima permintaan withdraw Anda. Berikut detailnya:
 
@@ -138,7 +140,7 @@ Terima kasih telah menggunakan layanan kami! 😊
 
 Hormat kami,
 SEWATOPUP`
-    await httpCreateMessage({ message, phone: userLogin.phone_number })
+    await httpCreateMessage({ message, phone: userSelected.phone_number })
 
     successResponse({
       res,
