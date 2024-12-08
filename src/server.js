@@ -35,7 +35,7 @@ const corsOptions = {
   optionsSuccessStatus: 204,
 }
 app.use(cors(corsOptions))
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
+app.use('/uploads', express.static(path.join(__dirname, 'uploads/')))
 app.use((req, res, next) => {
   console.log(`Request received: ${req.method} ${req.url}`)
   next()
