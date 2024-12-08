@@ -44,6 +44,8 @@ app.use('/user', userRouter)
 app.use('/packages', packagesRouter)
 app.use('/bank', bankRouter)
 app.use('/order', orderRouter)
+// middleware express static
+
 app.use('/media', mediaRouter)
 app.use('/withdrawal', withdrawalRouter)
 app.use('/balance', balanceRouter)

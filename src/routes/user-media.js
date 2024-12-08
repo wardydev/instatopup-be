@@ -1,6 +1,8 @@
 const express = require('express')
 const multer = require('multer')
 const path = require('path')
+const fs = require('fs')
+
 const {
   uploadLogo,
   uploadBanner,
@@ -15,10 +17,16 @@ const {
 const { apiLimiterRestApi } = require('../middleware/customer.js')
 
 const router = express.Router()
+const app = express()
+
+const UPLOAD_DIR = path.join(__dirname, 'uploads')
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR)
+}
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/')
+    cb(null, UPLOAD_DIR)
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
@@ -46,6 +54,7 @@ const uploadBannerConfig = multer({
   limits: { fileSize: 2 * 1024 * 1024 },
 })
 
+app.use('/uploads', express.static(UPLOAD_DIR))
 router.post(
   '/upload-logo',
   authenticatedToken,

@@ -43,10 +43,12 @@ const uploadLogo = async (req, res) => {
         statusCode: 400,
       })
 
-    const fileLocation = `/uploads/${req.file.filename}`
+    const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${
+      req.file.filename
+    }`
 
     await createLogoQuery({
-      imageUrl: fileLocation,
+      imageUrl: fileUrl,
       userId: userLogin.id,
       userWebsiteId: websiteSelected[0].id,
     })
@@ -104,10 +106,12 @@ const uploadBanner = async (req, res) => {
         statusCode: 400,
       })
 
-    const fileLocation = `/uploads/${req.file.filename}`
+    const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${
+      req.file.filename
+    }`
 
     await createSliderQuery({
-      imageUrl: fileLocation,
+      imageUrl: fileUrl,
       userId: userLogin.id,
       userWebsiteId: websiteSelected[0].id,
     })
