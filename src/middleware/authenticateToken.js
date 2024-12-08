@@ -197,13 +197,13 @@ const authenticatedTokenAdmin = async (req, res, next) => {
       })
     }
 
-    if (userSelected[0].email !== 'hairulwardy@gmail.com')
+    if (userSelected[0].email !== 'wardydev@gmail.com')
       return errorResponse({
         res,
         message: 'Unauthorized',
         statusCode: 401,
       })
-    if (userSelected[0].full_name !== 'hairul wardy')
+    if (userSelected[0].full_name !== 'Hairul Wardi')
       return errorResponse({
         res,
         message: 'Unauthorized',
