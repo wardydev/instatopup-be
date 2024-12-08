@@ -11,6 +11,7 @@ const updateBalanceUserQuery = ({
   totalBalance,
   amount,
   description,
+  type = '+',
 }) => {
   const SQLQuery =
     'INSERT INTO `user_balance` (user_id, balance, transaction_amount, transaction_type, description) VALUES (?, ?, ?, ?, ?)'
@@ -18,7 +19,7 @@ const updateBalanceUserQuery = ({
     userId,
     totalBalance,
     amount,
-    '+',
+    type,
     description,
   ])
 }

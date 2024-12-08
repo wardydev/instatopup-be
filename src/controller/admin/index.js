@@ -9,6 +9,10 @@ const {
   getTotalWithdrawalListsQuery,
   getTotalWebsiteQuery,
 } = require('../../model/admin')
+const {
+  updateBalanceUserQuery,
+  getUserBalanceQuery,
+} = require('../../model/balance')
 
 const activateUserWebsite = async (req, res) => {
   try {
@@ -114,12 +118,18 @@ const getListsWithdrwal = async (req, res) => {
 
 const approveRequestSettlement = async (req, res) => {
   try {
-    const { userId, withdrawalId, status } = req.body
+    const { userId, withdrawalId, status, amount } = req.body
 
     if (!userId)
       return errorResponse({
         res,
         message: 'ID User tidak ditemukan',
+        statusCode: 400,
+      })
+    if (!amount)
+      return errorResponse({
+        res,
+        message: 'Amount tidak ditemukan',
         statusCode: 400,
       })
     if (!withdrawalId)
@@ -139,6 +149,16 @@ const approveRequestSettlement = async (req, res) => {
       status,
       userId,
       withdrawalId,
+    })
+
+    const [balanceSelected] = await getUserBalanceQuery(userId)
+
+    await updateBalanceUserQuery({
+      userId,
+      type: '-',
+      amount,
+      description: 'purchase',
+      totalBalance: balanceSelected[0].balance - amount,
     })
 
     successResponse({

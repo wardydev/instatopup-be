@@ -449,6 +449,7 @@ const createPayment = async (req, res) => {
             Number(orderRecord.total_price) +
             Number(balanceSelected[0].balance),
           description: 'purchase',
+          type: '+',
         })
 
         successResponse({

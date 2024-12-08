@@ -214,6 +214,7 @@ const checkDeposit = async (req, res) => {
           Number(userDepositSelected[0].amount) +
           Number(balanceSelected[0].balance),
         userId: userSelected[0].id,
+        type: '+',
       })
       await updateDepositStatusQuery({
         status: 'success',
