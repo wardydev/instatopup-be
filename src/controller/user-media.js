@@ -92,11 +92,11 @@ const uploadBanner = async (req, res) => {
         message: 'File tidak ditemukan',
         statusCode: 400,
       })
-    const maxSize = 200 * 1024
+    const maxSize = 2 * 1024 * 1024
     if (req.file.size > maxSize)
       return errorResponse({
         res,
-        message: 'Ukuran file maksimal adalah 200KB',
+        message: 'Ukuran file maksimal adalah 2mb',
         statusCode: 400,
       })
 
