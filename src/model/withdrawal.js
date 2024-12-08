@@ -13,8 +13,9 @@ const createRequestWithdrawalQuery = ({ userId, bankId, amount }) => {
 }
 
 const getTotalBalanceQuery = (userId) => {
-  const SQLQuery = 'SELECT balance FROM `user_balance` WHERE user_id = ?'
-  return dbPool.execute(SQLQuery, [userId])
+  const SQLQuery =
+    'SELECT balance FROM `user_balance` WHERE user_id = ? AND description = ?'
+  return dbPool.execute(SQLQuery, [userId, 'purchase'])
 }
 
 module.exports = {

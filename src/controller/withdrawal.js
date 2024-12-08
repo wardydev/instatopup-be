@@ -1,5 +1,11 @@
+const { ADMIN_FEE } = require('../helper/constants')
+const { formatRupiah, formatDate } = require('../helper/formatted')
 const { userAuthorization } = require('../helper/functions')
-const { errorResponse, successResponse } = require('../helper/http')
+const {
+  errorResponse,
+  successResponse,
+  httpCreateMessage,
+} = require('../helper/http')
 const { getBankQuery } = require('../model/bank')
 const {
   listWithdrawalQuery,
@@ -51,7 +57,7 @@ const createRequestWithdrawal = async (req, res) => {
 
     const userLogin = userAuthorization(authorization)
 
-    const { amount, bankId } = req.body
+    const { amount, bankId, bankName } = req.body
 
     if (!amount)
       return errorResponse({
@@ -60,6 +66,12 @@ const createRequestWithdrawal = async (req, res) => {
         statusCode: 400,
       })
     if (!bankId)
+      return errorResponse({
+        res,
+        message: 'Bank tidak ditemukan',
+        statusCode: 400,
+      })
+    if (!bankName)
       return errorResponse({
         res,
         message: 'Bank tidak ditemukan',
@@ -85,7 +97,10 @@ const createRequestWithdrawal = async (req, res) => {
         statusCode: 400,
       })
 
-    if (Number(amount) > Number(balanceSelected[0].balance))
+    const amountWithAdminFee = Number(amount) * ADMIN_FEE
+    const finalAmount = amount - amountWithAdminFee
+
+    if (Number(finalAmount) > Number(balanceSelected[0].balance))
       return errorResponse({
         res,
         message: 'Jumlah yang diterima tidak sesuai dengan jumlah saldo Kamu',
@@ -93,16 +108,32 @@ const createRequestWithdrawal = async (req, res) => {
       })
 
     await createRequestWithdrawalQuery({
-      amount,
+      amount: finalAmount,
       bankId,
       userId: userLogin.id,
     })
 
     // tambahkan pesan ke owner kalau ada user sedang melakukan penarikan
+    const message = `Halo, ${userLogin.full_name}!
+
+Kami telah menerima permintaan withdraw Anda. Berikut detailnya:
+
+Jumlah Withdraw: ${formatRupiah(finalAmount)}
+Metode Pembayaran: ${bankName}
+Tanggal Permintaan: ${formatDate(new Date())}
+Permintaan Anda sedang kami proses dan diperkirakan akan selesai dalam 1 hari kerja. Kami akan mengirimkan notifikasi setelah dana berhasil ditransfer.
+
+Jika ada pertanyaan atau kendala, silakan hubungi tim support kam
+
+Terima kasih telah menggunakan layanan kami! 😊
+
+Hormat kami,
+SEWATOPUP`
+    await httpCreateMessage({ message, phone: userLogin.phone_number })
 
     successResponse({
       res,
-      message: `Berhasil membuat request penarikan dana sejumlah ${amount}, Silahkan menunggu dana Kamu akan dikirim dalam waktu 1x24 Jam`,
+      message: `Berhasil membuat request penarikan dana sejumlah ${finalAmount}, Silahkan menunggu dana Kamu akan dikirim dalam waktu 1x24 Jam`,
       statusCode: 200,
     })
   } catch (err) {
