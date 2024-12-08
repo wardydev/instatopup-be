@@ -17,7 +17,6 @@ const {
 const { apiLimiterRestApi } = require('../middleware/customer.js')
 
 const router = express.Router()
-const app = express()
 
 const UPLOAD_DIR = path.join(__dirname, 'uploads')
 if (!fs.existsSync(UPLOAD_DIR)) {
@@ -54,7 +53,6 @@ const uploadBannerConfig = multer({
   limits: { fileSize: 2 * 1024 * 1024 },
 })
 
-app.use('/uploads', express.static(UPLOAD_DIR))
 router.post(
   '/upload-logo',
   authenticatedToken,

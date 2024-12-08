@@ -1,5 +1,6 @@
 const express = require('express')
 const cors = require('cors')
+const path = require('path')
 const dotenv = require('dotenv')
 const memberRouter = require('./routes/member.js')
 const userRouter = require('./routes/user.js')
@@ -34,6 +35,7 @@ const corsOptions = {
   optionsSuccessStatus: 204,
 }
 app.use(cors(corsOptions))
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
 dotenv.config()
 app.use(cors(corsOptions))
