@@ -65,7 +65,7 @@ const createRequestWithdrawal = async (req, res) => {
       })
 
     const userLogin = userAuthorization(authorization)
-    const [userSelected] = getUserIdByTokenQuery(userLogin.id)
+    const [userSelected] = await getUserIdByTokenQuery(userLogin.id)
 
     const { amount, bankId, bankName } = req.body
 
