@@ -26,7 +26,6 @@ const activateUserWebsite = async (req, res) => {
       userId,
       websiteId,
     })
-    await createDefaultUserBalanceQuery(userId)
 
     successResponse({
       res,
