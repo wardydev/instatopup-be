@@ -27,12 +27,20 @@ const getListWithdrawalUser = async (req, res) => {
     const userLogin = userAuthorization(authorization)
 
     const [withdrawalSelected] = await listWithdrawalQuery(userLogin.id)
+    const newWithdarawlData = withdrawalSelected.map((item) => {
+      const amountWithAdminFee = item.amount * ADMIN_FEE
+      const finalAmount = item.amount - amountWithAdminFee
+      return {
+        ...item,
+        amount: finalAmount,
+      }
+    })
 
     successResponse({
       res,
       message: 'Berhasil mengambil history penarikan',
       statusCode: 200,
-      data: withdrawalSelected,
+      data: newWithdarawlData,
     })
   } catch (err) {
     console.log(err)
@@ -100,7 +108,7 @@ const createRequestWithdrawal = async (req, res) => {
     const amountWithAdminFee = Number(amount) * ADMIN_FEE
     const finalAmount = amount - amountWithAdminFee
 
-    if (Number(finalAmount) > Number(balanceSelected[0].balance))
+    if (Number(amount) > Number(balanceSelected[0].balance))
       return errorResponse({
         res,
         message: 'Jumlah yang diterima tidak sesuai dengan jumlah saldo Kamu',
@@ -108,7 +116,7 @@ const createRequestWithdrawal = async (req, res) => {
       })
 
     await createRequestWithdrawalQuery({
-      amount: finalAmount,
+      amount,
       bankId,
       userId: userLogin.id,
     })
@@ -119,6 +127,7 @@ const createRequestWithdrawal = async (req, res) => {
 Kami telah menerima permintaan withdraw Anda. Berikut detailnya:
 
 Jumlah Withdraw: ${formatRupiah(finalAmount)}
+Biaya Admin: 0.01
 Metode Pembayaran: ${bankName}
 Tanggal Permintaan: ${formatDate(new Date())}
 Permintaan Anda sedang kami proses dan diperkirakan akan selesai dalam 1 hari kerja. Kami akan mengirimkan notifikasi setelah dana berhasil ditransfer.
@@ -133,7 +142,7 @@ SEWATOPUP`
 
     successResponse({
       res,
-      message: `Berhasil membuat request penarikan dana sejumlah ${finalAmount}, Silahkan menunggu dana Kamu akan dikirim dalam waktu 1x24 Jam`,
+      message: `Berhasil membuat request penarikan dana, Silahkan menunggu dana Kamu akan dikirim dalam waktu 1x24 Jam`,
       statusCode: 200,
     })
   } catch (err) {
