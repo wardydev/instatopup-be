@@ -139,7 +139,7 @@ Jika ada pertanyaan atau kendala, silakan hubungi tim support kam
 Terima kasih telah menggunakan layanan kami! 😊
 
 Hormat kami,
-SEWATOPUP`
+WARDYGITAL`
     await httpCreateMessage({ message, phone: userSelected[0].phone_number })
 
     successResponse({

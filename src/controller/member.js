@@ -210,10 +210,10 @@ Berikut detail toko Anda:
 - *Domain*: ${domain}
 
 Mohon segera menyelesaikan pembayaran untuk mengaktifkan layanan website Anda.
-Link Pembayaran: https://localhost:5173/payment?invoice=${invoiceId} 💳\n
+Link Pembayaran: https://sewatopup.com/payment?invoice=${invoiceId} 💳\n
 
 Terima kasih! 🙏
-*Tim Tokoflix* 💙`
+*WARDYGITAL* 💙`
 
       await httpCreateMessage({ message: message, phone: phoneNumber })
 
@@ -278,7 +278,7 @@ const checkTransaction = async (req, res) => {
         transactionRecord.user_id
       )
 
-      const message = `✨ Terima kasih telah bergabung sebagai reseller di Tokoflix! ✨
+      const message = `✨ Terima kasih telah bergabung sebagai reseller di SEWATOPUP! ✨
 
 🌐 Detail Website Anda:
 
@@ -291,7 +291,7 @@ Website Anda sedang dalam proses pembuatan dan akan selesai dalam waktu 1x24 jam
 
 💬 Jika ada pertanyaan, jangan ragu untuk menghubungi kami!
 
-Terima kasih atas kepercayaan Anda kepada Tokoflix 💙 Selamat mengelola website Anda dan semoga sukses selalu! 😊`
+Terima kasih atas kepercayaan Anda kepada SEWATOPUP 💙 Selamat mengelola website Anda dan semoga sukses selalu! 😊`
 
       await httpCreateMessage({
         message: message,

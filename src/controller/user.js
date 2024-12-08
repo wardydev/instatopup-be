@@ -87,7 +87,7 @@ const loginUser = async (req, res) => {
       expirationTime
     )
 
-    const message = `*Reseller Tokoflix*\n\nKode OTP Anda adalah: *${otp}*\n\nSilakan gunakan kode ini untuk menyelesaikan proses verifikasi akun. \n\nJika Anda tidak meminta kode ini, abaikan pesan ini dan jangan berikan kode ini kepada siapapun.`
+    const message = `*WARDYGITAL*\n\nKode OTP Anda adalah: *${otp}*\n\nSilakan gunakan kode ini untuk menyelesaikan proses verifikasi akun. \n\nJika Anda tidak meminta kode ini, abaikan pesan ini dan jangan berikan kode ini kepada siapapun.`
     await httpCreateMessage({
       message: message,
       phone: userRecord.phone_number,
@@ -256,7 +256,7 @@ const sendOTPResetPassword = async (req, res) => {
     const otp = generateOtp()
 
     await httpCreateMessage({
-      message: `*Tokoflix*\n\nKode OTP Anda untuk reset password adalah: *${otp}*\n\nGunakan kode ini untuk mengatur ulang kata sandi akun Anda. \n\nJika Anda tidak meminta reset password, abaikan pesan ini dan jangan berikan kode ini kepada siapapun.`,
+      message: `*WARDYGITAL*\n\nKode OTP Anda untuk reset password adalah: *${otp}*\n\nGunakan kode ini untuk mengatur ulang kata sandi akun Anda. \n\nJika Anda tidak meminta reset password, abaikan pesan ini dan jangan berikan kode ini kepada siapapun.`,
       phone: phoneNumber,
     })
 
