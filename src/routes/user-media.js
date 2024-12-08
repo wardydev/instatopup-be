@@ -9,12 +9,17 @@ const {
   deleteLogo,
   getUserLogo,
   getUserBanner,
+  getUserLogoByApikey,
+  getUserBannerByApikey,
 } = require('../controller/user-media.js')
 const {
   authenticatedToken,
   checkUserPackage,
 } = require('../middleware/authenticateToken.js')
-const { apiLimiterRestApi } = require('../middleware/customer.js')
+const {
+  apiLimiterRestApi,
+  apiKeyAndIpWhitelistMiddleware,
+} = require('../middleware/customer.js')
 
 const router = express.Router()
 
@@ -70,5 +75,17 @@ router.post(
 router.delete('/:id', authenticatedToken, apiLimiterRestApi, deleteLogo)
 router.get('/logo', authenticatedToken, apiLimiterRestApi, getUserLogo)
 router.get('/banner', authenticatedToken, apiLimiterRestApi, getUserBanner)
+router.get(
+  '/user/logo',
+  apiKeyAndIpWhitelistMiddleware,
+  apiLimiterRestApi,
+  getUserLogoByApikey
+)
+router.get(
+  '/user/banner',
+  apiKeyAndIpWhitelistMiddleware,
+  apiLimiterRestApi,
+  getUserBannerByApikey
+)
 
 module.exports = router

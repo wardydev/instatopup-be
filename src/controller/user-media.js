@@ -1,5 +1,6 @@
 const { userAuthorization } = require('../helper/functions')
 const { successResponse, errorResponse } = require('../helper/http')
+const { getUserByApiKeyQuery } = require('../model/user')
 const {
   createLogoQuery,
   getWebsiteIdQuery,
@@ -243,10 +244,65 @@ const getUserBanner = async (req, res) => {
   }
 }
 
+const getUserLogoByApikey = async (req, res) => {
+  try {
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+
+    const [userSelected] = await getUserByApiKeyQuery(token)
+    const [userLogoSelected] = await getUserMediaQuery({
+      userId: userSelected[0].id,
+      type: 'logo',
+    })
+
+    successResponse({
+      res,
+      message: 'Berhasil mengambil gambar banner',
+      statusCode: 200,
+      data: userLogoSelected,
+    })
+  } catch (err) {
+    console.log(err)
+    return errorResponse({
+      res,
+      message: 'Terjadi Kesalahan di server',
+      statusCode: 500,
+    })
+  }
+}
+const getUserBannerByApikey = async (req, res) => {
+  try {
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+
+    const [userSelected] = await getUserByApiKeyQuery(token)
+    const [useBannerSelected] = await getUserMediaQuery({
+      userId: userSelected[0].id,
+      type: 'banner',
+    })
+
+    successResponse({
+      res,
+      message: 'Berhasil mengambil gambar banner',
+      statusCode: 200,
+      data: useBannerSelected,
+    })
+  } catch (err) {
+    console.log(err)
+    return errorResponse({
+      res,
+      message: 'Terjadi Kesalahan di server',
+      statusCode: 500,
+    })
+  }
+}
+
 module.exports = {
   uploadLogo,
   uploadBanner,
   deleteLogo,
   getUserLogo,
   getUserBanner,
+  getUserLogoByApikey,
+  getUserBannerByApikey,
 }
