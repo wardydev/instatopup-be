@@ -18,7 +18,7 @@ const { apiLimiterRestApi } = require('../middleware/customer.js')
 
 const router = express.Router()
 
-const UPLOAD_DIR = path.join(__dirname, 'uploads/')
+const UPLOAD_DIR = path.join(process.cwd(), 'uploads')
 if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR)
 }
