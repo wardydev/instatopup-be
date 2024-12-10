@@ -33,7 +33,7 @@ const updateDepositStatusQuery = ({ status, trxId, userId }) => {
 }
 
 const historyDepositListsQuery = ({ userId, offset, limit }) => {
-  const SQLQuery = `SELECT amount, status, payment_method, created_at FROM deposit WHERE user_id = ? ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset} `
+  const SQLQuery = `SELECT amount, status, payment_method, created_at, trx_id FROM deposit WHERE user_id = ? ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset} `
   return dbPool.execute(SQLQuery, [userId])
 }
 
