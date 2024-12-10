@@ -102,9 +102,13 @@ const createDeposit = async (req, res) => {
 
     const trxId = generateTrxId()
     const signatureKey = generateHashWithTimestamp(Number(amount))
+
+    const adminFee = Number(amount) * 0.01
+    const totalPrice = Number(adminFee) + Number(amount)
+
     const bodyDeposit = {
       merchantCode: process.env.DUITKU_KODE_MERCHANT,
-      paymentAmount: Number(amount),
+      paymentAmount: totalPrice,
       paymentMethod: 'SP',
       merchantOrderId: signatureKey.merchantOrderId,
       productDetails: `Create new user product`,
@@ -113,8 +117,8 @@ const createDeposit = async (req, res) => {
       phoneNumber: userSelected[0].phone_number,
       itemDetails: [
         {
-          name: `User Deposit Rp ${amount}`,
-          price: Number(amount),
+          name: `User Deposit Rp ${totalPrice}`,
+          price: Number(totalPrice),
           quantity: 1,
         },
       ],
@@ -136,7 +140,7 @@ const createDeposit = async (req, res) => {
       const qrCodeDataURL = await generateQRCode(responseTransaction.qrString)
 
       await createDepositQuery({
-        amount,
+        amount: totalPrice,
         qrCode: qrCodeDataURL,
         status: 'pending',
         userId: userSelected[0].id,
@@ -150,7 +154,7 @@ const createDeposit = async (req, res) => {
         statusCode: 200,
         data: {
           transaction_id: trxId,
-          amount,
+          amount: totalPrice,
           paymentMethod: 'QRIS',
           qrCode: qrCodeDataURL,
         },
