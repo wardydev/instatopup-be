@@ -259,7 +259,10 @@ const getUserLogoByApikey = async (req, res) => {
       res,
       message: 'Berhasil mengambil gambar banner',
       statusCode: 200,
-      data: userLogoSelected,
+      data: {
+        logo: userLogoSelected[0].image_url,
+        logoName: userSelected[0].full_name,
+      },
     })
   } catch (err) {
     console.log(err)
