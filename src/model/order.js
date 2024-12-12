@@ -32,9 +32,10 @@ const createOrderQuery = ({
   merchantId,
   brandKey,
   variationKey,
+  phoneNumber,
 }) => {
   const SQLQuery =
-    'INSERT INTO `order` (user_id, product_id, invoice, quantity, total_price, data, status, qr_code, merchant_id, brand_key, variation_key) VALUES (?,?,?,?,?,?,?,?,?,?,?)'
+    'INSERT INTO `order` (user_id, product_id, invoice, quantity, total_price, data, status, qr_code, merchant_id, brand_key, variation_key, customer_number) VALUES (?,?,?,?,?,?,?,?,?,?,?, ?)'
   return dbPool.execute(SQLQuery, [
     userId,
     productId,
@@ -47,29 +48,30 @@ const createOrderQuery = ({
     merchantId,
     brandKey,
     variationKey,
+    phoneNumber,
   ])
 }
 
 const getOrderByUserTrxidQuery = (trxId, userId) => {
   const SQLQuery =
-    'SELECT id, product_id, user_id, invoice, total_price, data, status, qr_code, merchant_id, brand_key, variation_key, trx_id, quantity, created_at FROM `order` WHERE invoice = ? AND user_id = ?'
+    'SELECT id, product_id, user_id, invoice, total_price, data, status, qr_code, merchant_id, brand_key, variation_key, trx_id, quantity, created_at, customer_number FROM `order` WHERE invoice = ? AND user_id = ?'
   return dbPool.execute(SQLQuery, [trxId, userId])
 }
 
 const getOrderByTrxidQuery = ({ trxId, status }) => {
   const SQLQuery =
-    'SELECT id, product_id, user_id, invoice, total_price, data, status, qr_code, merchant_id, brand_key, variation_key, trx_id, quantity, created_at FROM `order` WHERE invoice = ? AND status = ?'
+    'SELECT id, product_id, user_id, invoice, total_price, data, status, qr_code, merchant_id, brand_key, variation_key, trx_id, quantity, created_at, customer_number FROM `order` WHERE invoice = ? AND status = ?'
   return dbPool.execute(SQLQuery, [trxId, status])
 }
 
 const getHistoryOrderQuery = ({ userId, invoice }) => {
   if (invoice) {
     const SQLQuery =
-      'SELECT invoice, brand_key, data, created_at, total_price, status FROM `order` WHERE invoice = ? AND user_id = ?'
+      'SELECT invoice, brand_key, data, created_at, total_price, status, customer_number FROM `order` WHERE invoice = ? AND user_id = ?'
     return dbPool.execute(SQLQuery, [invoice, userId])
   } else {
     const SQLQuery =
-      'SELECT invoice, brand_key, data, created_at, total_price, status FROM `order` WHERE user_id = ? ORDER BY created_at DESC LIMIT 10 '
+      'SELECT invoice, brand_key, data, created_at, total_price, status, customer_number FROM `order` WHERE user_id = ? ORDER BY created_at DESC LIMIT 10 '
     return dbPool.execute(SQLQuery, [userId])
   }
 }

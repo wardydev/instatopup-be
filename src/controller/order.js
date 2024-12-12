@@ -199,6 +199,9 @@ const createOrder = async (req, res) => {
 
     if (responseTransaction.statusCode === '00') {
       const qrCodeDataURL = await generateQRCode(responseTransaction.qrString)
+      const customerPhoneNumber = JSON.parse(formData.phoneNumber).find(
+        (item) => item.key === 'phoneNumber'
+      )
       // CREATE ORDER
       await createOrderQuery({
         data: JSON.stringify(formData.data),
@@ -210,6 +213,7 @@ const createOrder = async (req, res) => {
         merchantId: signatureKey.merchantOrderId,
         brandKey: formData.brand_key,
         variationKey: formData.variation_key,
+        phoneNumber: customerPhoneNumber ? customerPhoneNumber : null,
       })
       successResponse({
         res,
