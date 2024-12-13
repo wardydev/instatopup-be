@@ -45,6 +45,7 @@ const {
   updateOrderStatusQuery,
   updateTrxIdQuery,
 } = require('../../model/order')
+const { MINIMAL_DEPOSIT } = require('../../helper/constants')
 
 const getRestUserBalance = async (req, res) => {
   try {
@@ -99,6 +100,12 @@ const createDeposit = async (req, res) => {
         message: 'Deposit amount not found',
         statusCode: 404,
       })
+
+    if(amount < MINIMAL_DEPOSIT) return errorResponse({
+      res,
+      message: 'Minimum deposit Rp 500,000',
+      statusCode: 404,
+    })
 
     const trxId = generateTrxId()
     const signatureKey = generateHashWithTimestamp(Number(amount))
@@ -285,7 +292,6 @@ const getHistoryDeposit = async (req, res) => {
     })
 
     const [[{ total }]] = await getTotalDepositHistoryQuery(userLogin.id)
-    console.log(getTotalDepositHistoryQuery)
     const totalPages = Math.ceil(total / limit)
 
     successResponse({
@@ -526,8 +532,6 @@ const createOrderRestApi = async (req, res) => {
       (item) => item.key === formData.variation_key
     )
 
-    console.log(productSelected, 'PRODUK SELECTED')
-
     if (Number(formData.price) < Number(productSelected.price))
       return errorResponse({
         res,
@@ -676,8 +680,6 @@ const checkRestOrder = async (req, res) => {
       URL_CREATE_ORDER,
       JSON.stringify(createOrderBody)
     )
-
-    console.log(responseOrder, 'RESPOMSE')
 
     if (
       responseOrder.code === 500 ||

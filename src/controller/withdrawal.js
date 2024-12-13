@@ -6,6 +6,7 @@ const {
   successResponse,
   httpCreateMessage,
 } = require('../helper/http')
+const { updateBalanceUserQuery } = require('../model/balance')
 const { getBankQuery } = require('../model/bank')
 const { getUserIdByTokenQuery } = require('../model/user')
 const {
@@ -121,6 +122,14 @@ const createRequestWithdrawal = async (req, res) => {
       amount,
       bankId,
       userId: userLogin.id,
+    })
+
+    await updateBalanceUserQuery({
+      userId: userLogin.id,
+      type: '-',
+      amount,
+      description: 'purchase',
+      totalBalance: balanceSelected[0].balance - amount,
     })
 
     // tambahkan pesan ke owner kalau ada user sedang melakukan penarikan

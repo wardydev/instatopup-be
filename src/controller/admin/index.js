@@ -151,16 +151,6 @@ const approveRequestSettlement = async (req, res) => {
       withdrawalId,
     })
 
-    const [balanceSelected] = await getUserBalanceQuery(userId)
-
-    await updateBalanceUserQuery({
-      userId,
-      type: '-',
-      amount,
-      description: 'purchase',
-      totalBalance: balanceSelected[0].balance - amount,
-    })
-
     successResponse({
       res,
       message: 'Withdrwal telah diterima',

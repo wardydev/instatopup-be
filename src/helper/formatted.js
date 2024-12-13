@@ -66,6 +66,23 @@ function formattedInvoice(invoice) {
   return formatted
 }
 
+function formatNomorHPId(nomorHP) {
+  let cleaned = nomorHP.replace(/\D/g, '');
+
+  if (cleaned.startsWith('0')) {
+      return '62' + cleaned.substring(1);
+  }
+  else if (cleaned.startsWith('62')) {
+      return cleaned;
+  }
+  else if (cleaned.startsWith('62')) {
+      return cleaned;
+  }
+  else {
+      return nomorHP;
+  }
+}
+
 module.exports = {
   formatRupiah,
   formatDate,
@@ -74,4 +91,5 @@ module.exports = {
   calculatePercentageIncrease,
   formatDateTimestamp,
   formattedInvoice,
+  formatNomorHPId
 }

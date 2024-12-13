@@ -194,8 +194,6 @@ const getVariantBrandKey = async (req, res) => {
 
     const [productByBrandKey] = await getProductByBrandKeyQuery(brand_key)
 
-    console.log(productByBrandKey)
-
     successResponse({
       res,
       message: 'Berhasil mengambil semua data',

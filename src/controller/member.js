@@ -475,9 +475,9 @@ const checkIpDomain = async (req, res) => {
         statusCode: 400,
       })
 
-    const targetIP = '191.96.31.58'
+    const targetIP = ['191.96.31.58'] // tambahkan ip yang terkait
     const domainIP = await checkDomainIP(domain)
-    if (domainIP === targetIP) {
+    if (targetIP.includes(domainIP)) {
       successResponse({
         res,
         message: 'IP Domain sudah sesuai',

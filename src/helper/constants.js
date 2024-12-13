@@ -1,3 +1,4 @@
 const ADMIN_FEE = 0.01
+const MINIMAL_DEPOSIT = 500000
 
-module.exports = { ADMIN_FEE }
+module.exports = { ADMIN_FEE, MINIMAL_DEPOSIT }

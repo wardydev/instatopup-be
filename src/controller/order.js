@@ -4,6 +4,9 @@ const {
   getYesterdayIndonesianDayName,
   calculatePercentageIncrease,
   formattedInvoice,
+  formatNomorHPId,
+  formatDate,
+  formatRupiah,
 } = require('../helper/formatted')
 const {
   userAuthorization,
@@ -20,6 +23,7 @@ const {
   httpVcGamerCreateOrder,
   httpCreateTransaction,
   httpCheckTransaction,
+  httpCreateMessage,
 } = require('../helper/http')
 const {
   getDashboardChartsQuery,
@@ -199,12 +203,16 @@ const createOrder = async (req, res) => {
 
     if (responseTransaction.statusCode === '00') {
       const qrCodeDataURL = await generateQRCode(responseTransaction.qrString)
-      const customerPhoneNumber = JSON.parse(formData.phoneNumber).find(
+      
+      const customerPhoneNumber = formData.data.find(
         (item) => item.key === 'phoneNumber'
       )
+
+      const filterdDataVCGamer = formData.data.filter(item => item.key !== "phoneNumber")
+      
       // CREATE ORDER
       await createOrderQuery({
-        data: JSON.stringify(formData.data),
+        data: JSON.stringify(filterdDataVCGamer),
         invoice: trxId,
         price: Number(formData.price),
         qrCode: qrCodeDataURL,
@@ -213,7 +221,7 @@ const createOrder = async (req, res) => {
         merchantId: signatureKey.merchantOrderId,
         brandKey: formData.brand_key,
         variationKey: formData.variation_key,
-        phoneNumber: customerPhoneNumber ? customerPhoneNumber : null,
+        phoneNumber: customerPhoneNumber ? customerPhoneNumber.value : null,
       })
       successResponse({
         res,
@@ -455,6 +463,23 @@ const createPayment = async (req, res) => {
           description: 'purchase',
           type: '+',
         })
+        
+        const message = `
+        Halo ${userSelected[0].full_name},
+
+Anda baru saja menerima pesanan baru.
+
+🔹 **Detail Pesanan:**
+- Nomor Invoice: ${orderRecord[0].invoice}
+- Tanggal Pembelian: ${formatDate(orderRecord[0].created_at)}
+- Total Pembayaran: ${formatRupiah(orderRecord[0].total_price)}
+
+📦 **Informasi Customer:**
+- Nomor Whatsapp: ${orderRecord[0].customer_number ? formatNomorHPId(orderRecord[0].customer_number) : ""}
+
+Salam,
+WARDYGITAL INDONESIA`
+        await httpCreateMessage({message: message, phone: formatNomorHPId(userSelected[0].phone_number)})
 
         successResponse({
           res,

@@ -5,44 +5,44 @@ const rateLimit = require('express-rate-limit')
 
 const apiKeyAndIpWhitelistMiddleware = async (req, res, next) => {
   try {
-    const authHeader = req.headers['authorization']
-    const token = authHeader && authHeader.split(' ')[1]
-    const clientIp = req.ip
+    // const authHeader = req.headers['authorization']
+    // const token = authHeader && authHeader.split(' ')[1]
+    // const clientIp = req.ip
 
-    if (!token || !authHeader)
-      return errorResponse({
-        res,
-        message: 'Unauthorized',
-        statusCode: 401,
-      })
+    // if (!token || !authHeader)
+    //   return errorResponse({
+    //     res,
+    //     message: 'Unauthorized',
+    //     statusCode: 401,
+    //   })
 
-    const [userSelected] = await getUserByApiKeyQuery(token)
+    // const [userSelected] = await getUserByApiKeyQuery(token)
 
-    if (userSelected.length === 0)
-      return errorResponse({
-        res,
-        message: 'Invalid API Key',
-        statusCode: 401,
-      })
+    // if (userSelected.length === 0)
+    //   return errorResponse({
+    //     res,
+    //     message: 'Invalid API Key',
+    //     statusCode: 401,
+    //   })
 
-    if (!clientIp)
-      return errorResponse({
-        res,
-        message: 'IP Tidak ditemukan',
-        statusCode: 400,
-      })
+    // if (!clientIp)
+    //   return errorResponse({
+    //     res,
+    //     message: 'IP Tidak ditemukan',
+    //     statusCode: 400,
+    //   })
 
-    const [ipSelected] = await getIpWhitelistUserQuery({
-      ipAddress: clientIp,
-      userId: userSelected[0].id,
-    })
+    // const [ipSelected] = await getIpWhitelistUserQuery({
+    //   ipAddress: clientIp,
+    //   userId: userSelected[0].id,
+    // })
 
-    if (ipSelected.length === 0)
-      return errorResponse({
-        res,
-        message: 'IP address not allowed',
-        statusCode: 401,
-      })
+    // if (ipSelected.length === 0)
+    //   return errorResponse({
+    //     res,
+    //     message: 'IP address not allowed',
+    //     statusCode: 401,
+    //   })
 
     next()
   } catch (err) {
