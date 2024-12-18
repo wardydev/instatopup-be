@@ -88,7 +88,7 @@ const loginUser = async (req, res) => {
     )
 
     const message = `*WARDYGITAL*\n\nKode OTP Anda adalah: *${otp}*\n\nSilakan gunakan kode ini untuk menyelesaikan proses verifikasi akun. \n\nJika Anda tidak meminta kode ini, abaikan pesan ini dan jangan berikan kode ini kepada siapapun.`
-    await httpCreateMessage({
+    const response = await httpCreateMessage({
       message: message,
       phone: userRecord.phone_number,
     })

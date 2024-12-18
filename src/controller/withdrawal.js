@@ -119,7 +119,7 @@ const createRequestWithdrawal = async (req, res) => {
       })
 
     await createRequestWithdrawalQuery({
-      amount,
+      amount: finalAmount,
       bankId,
       userId: userLogin.id,
     })

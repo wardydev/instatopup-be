@@ -89,6 +89,8 @@ const createWebsite = async (req, res) => {
       domain,
       amount,
       packageName,
+      isDarkmode= false,
+      colorTheme =""
     } = req.body
 
     if (!isPhoneNumberFormatValid(phoneNumber))
@@ -152,6 +154,8 @@ const createWebsite = async (req, res) => {
       userId,
       status: 'pending',
       expiredAt: new Date(today).toISOString().slice(0, 19).replace('T', ' '),
+      colorTheme,
+      isDarkmode: JSON.stringify(isDarkmode)
     })
 
     // transaction
@@ -179,8 +183,8 @@ const createWebsite = async (req, res) => {
         email: email,
         phoneNumber: phoneNumber,
       },
-      callbackUrl: 'https://resellertokoflix.com',
-      returnUrl: 'https://resellertokoflix.com',
+      callbackUrl: 'https://panel.sewatopup.com',
+      returnUrl: 'https://panel.sewatopup.com',
       signature: signatureKey.signature,
       expiryPeriod: 15,
     }

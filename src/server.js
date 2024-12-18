@@ -20,27 +20,28 @@ const restApiRouter = require('./routes/restApi/index.js')
 const adminRouter = require('./routes/admin/index.js')
 
 const app = express()
+
 app.set('trust proxy', 1)
 const corsOptions = {
   origin: [
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'http://localhost:5500',
-    'https://wardyflix.my.id',
+    "https://sewatopup.com",
+    "http://191.96.31.58",
+    "https://191.96.31.58",
+    "https://wardyflix.my.id",
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "https://panel.sewatopup.com"
   ],
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  credentials: true,
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   exposedHeaders: ['Content-Length', 'X-Kuma-Revision'],
   optionsSuccessStatus: 204,
+  credentials: true
 }
 app.use(cors(corsOptions))
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads')
 app.use('/uploads', express.static(UPLOAD_DIR))
-app.use((req, res, next) => {
-  console.log(`Request received: ${req.method} ${req.url}`)
-  next()
-})
+
 
 dotenv.config()
 app.use(cors(corsOptions))

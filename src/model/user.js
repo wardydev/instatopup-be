@@ -26,15 +26,19 @@ const createUserWebsiteQuery = ({
   domain,
   status,
   expiredAt,
+  colorTheme,
+  isDarkmode
 }) => {
   const SQLQuery =
-    'INSERT INTO `user_website` (user_id, package_id, domain, status, expired_at) VALUES (?, ?, ?, ?, ?)'
+    'INSERT INTO `user_website` (user_id, package_id, domain, status, expired_at, color_theme, is_darkmode) VALUES (?, ?, ?, ?, ?,?,?)'
   return dbPool.execute(SQLQuery, [
     userId,
     packageId,
     domain,
     status,
     expiredAt,
+    colorTheme,
+    isDarkmode
   ])
 }
 

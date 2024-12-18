@@ -29,7 +29,6 @@ const {
   getDashboardChartsQuery,
   getChartOrderByDayQuery,
   createOrderQuery,
-  getOrderByTrxidQuery,
   updateOrderStatusQuery,
   updateTrxIdQuery,
   getHistoryOrderQuery,
@@ -41,6 +40,7 @@ const {
   getUserBalanceQuery,
 } = require('../model/balance')
 const { getProductByBrandKeyQuery } = require('../model/products')
+const { getDomainByUserIdQuery } = require('../model/user-website')
 
 const getDashboardChart = async (req, res) => {
   try {
@@ -128,6 +128,7 @@ const createOrder = async (req, res) => {
 
     const [userSelected] = await getUserByApiKeyQuery(token)
     const userId = userSelected[0].id
+    const [domainSelected] = await getDomainByUserIdQuery(userId)
 
     const formData = req.body
 
@@ -209,6 +210,25 @@ const createOrder = async (req, res) => {
       )
 
       const filterdDataVCGamer = formData.data.filter(item => item.key !== "phoneNumber")
+
+      if(customerPhoneNumber) {
+        const message = `
+        Halo Kak,
+
+Anda baru saja membuat pesanan baru.
+
+🔹 **Detail Pesanan:**
+- Nomor Invoice: ${trxId}
+- Tanggal Pembelian: ${formatDate(new Date())}
+- Total Pembayaran: ${formatRupiah(formData.price)}
+
+Selesaikan pembayaran Anda segera melalui link berikut:
+https://${domainSelected[0].domain}/order?trx_id=${trxId}
+
+Salam,
+WARDYGITAL INDONESIA`
+        await httpCreateMessage({message: message, phone: formatNomorHPId(customerPhoneNumber.value)})
+      }
       
       // CREATE ORDER
       await createOrderQuery({
@@ -341,13 +361,11 @@ const createOrderFlashSale = async (req, res) => {
 }
 
 const createPayment = async (req, res) => {
+  const trx_id = req.query.trx_id.replace(/\?$/, '')
+  const authHeader = req.headers['authorization']
+  const token = authHeader && authHeader.split(' ')[1]
+
   try {
-    const trx_id = req.query.trx_id.replace(/\?$/, '')
-    const authHeader = req.headers['authorization']
-    const token = authHeader && authHeader.split(' ')[1]
-
-    const [userSelected] = await getUserByApiKeyQuery(token)
-
     if (!trx_id)
       return errorResponse({
         res,
@@ -355,6 +373,7 @@ const createPayment = async (req, res) => {
         statusCode: 404,
       })
 
+    const [userSelected] = await getUserByApiKeyQuery(token)
     const [orderSelected] = await getOrderByUserTrxidQuery(
       trx_id,
       userSelected[0].id
@@ -373,13 +392,31 @@ const createPayment = async (req, res) => {
     )
     const productRecord = productSelected[0]
 
-    if (orderSelected[0].status === 'success')
+    if (orderRecord.status === 'success')
       return successResponse({
         res,
         message: 'Pesanan sukses',
         statusCode: 200,
         data: {
           status: 'success',
+          transaction_id: orderRecord.invoice,
+          total_price: orderRecord.total_price,
+          imageUrl: productRecord.image_url,
+          itemName: orderRecord.variation_key,
+          productName: productRecord.name,
+          data: orderRecord.data,
+          createdAt: orderRecord.created_at,
+          activeTab: 2,
+        },
+      })
+
+    if (orderSelected[0].status === 'refund')
+      return successResponse({
+        res,
+        message: 'Pesanan Gagal',
+        statusCode: 200,
+        data: {
+          status: 'refund',
           transaction_id: orderRecord.invoice,
           total_price: orderRecord.total_price,
           imageUrl: productRecord.image_url,
@@ -454,15 +491,26 @@ const createPayment = async (req, res) => {
           userId: orderRecord.user_id,
         })
 
-        await updateBalanceUserQuery({
-          userId: orderRecord.user_id,
-          amount: orderRecord.total_price,
-          totalBalance:
-            Number(orderRecord.total_price) +
-            Number(balanceSelected[0].balance),
-          description: 'purchase',
-          type: '+',
-        })
+        if(balanceSelected.length === 0 ) {
+          await updateBalanceUserQuery({
+            userId: orderRecord.user_id,
+            amount: orderRecord.total_price,
+            totalBalance:
+            orderRecord.total_price,
+            description: 'purchase',
+            type: '+',
+          })
+        } else {
+          await updateBalanceUserQuery({
+            userId: orderRecord.user_id,
+            amount: orderRecord.total_price,
+            totalBalance:
+              Number(orderRecord.total_price) +
+              Number(balanceSelected[0].balance),
+            description: 'purchase',
+            type: '+',
+          })
+        }
         
         const message = `
         Halo ${userSelected[0].full_name},
@@ -470,12 +518,12 @@ const createPayment = async (req, res) => {
 Anda baru saja menerima pesanan baru.
 
 🔹 **Detail Pesanan:**
-- Nomor Invoice: ${orderRecord[0].invoice}
-- Tanggal Pembelian: ${formatDate(orderRecord[0].created_at)}
-- Total Pembayaran: ${formatRupiah(orderRecord[0].total_price)}
+- Nomor Invoice: ${orderRecord.invoice}
+- Tanggal Pembelian: ${formatDate(orderRecord.created_at)}
+- Total Pembayaran: ${formatRupiah(orderRecord.total_price)}
 
 📦 **Informasi Customer:**
-- Nomor Whatsapp: ${orderRecord[0].customer_number ? formatNomorHPId(orderRecord[0].customer_number) : ""}
+- Nomor Whatsapp: ${orderRecord.customer_number ? formatNomorHPId(orderRecord.customer_number) : ""}
 
 Salam,
 WARDYGITAL INDONESIA`
@@ -597,13 +645,27 @@ const checkStatusProduct = async (req, res) => {
         userId: orderRecord.user_id,
       })
 
+      const responseJson = {
+        productId: orderRecord.product_id,
+        productName: response?.data.detail.variation_name,
+        brandKey: orderRecord.brand_key,
+        variationKey: orderRecord.variation_key,
+        invoice: orderRecord.invoice,
+        quantity: orderRecord.quantity,
+        totalPrice: orderRecord.total_price,
+        data: orderRecord.data,
+        status: "refund",
+        date: orderRecord.created_at,
+        historyStatus: response?.data.history_status,
+        voucherCode: response?.data.detail.voucher_code,
+        activeTab: 2,
+      }
+
       return successResponse({
         res,
         message: `Mohon maaf produk kosong, Pesanan dengan id transaksi ${trx_id} gagal di proses`,
         statusCode: 200,
-        data: {
-          activeTab: 6,
-        },
+        data: responseJson,
       })
     }
 

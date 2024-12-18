@@ -21,7 +21,9 @@ const getUserBalance = async (req, res) => {
       res,
       message: 'Berhasil mengambil saldo user',
       statusCode: 200,
-      data: userBalanceSelected[0],
+      data: {
+        balance: userBalanceSelected.length !== 0 ? userBalanceSelected[0].balance : 0
+      }
     })
   } catch (err) {
     console.log(err)

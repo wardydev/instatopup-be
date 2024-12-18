@@ -176,7 +176,17 @@ const getVariantBrandKey = async (req, res) => {
     const [userProductSelected] = await userProductQuery(token)
     const [profitSelected] = await getProfitQuery()
 
-    const updatedDataProducts = response?.data?.map((product) => {
+    const productWithProfit = response?.data.map(product => {
+      const productPriceProfitPercentage = Number(product.price) * profitSelected[0].profit / 100;
+      const finalPriceWithProfit = productPriceProfitPercentage + Number(product.price)
+
+      return {
+        ...product,
+        price: finalPriceWithProfit
+      }
+    })
+
+    const updatedDataProducts = productWithProfit?.map((product) => {
       const userPriceItem = userProductSelected.find(
         (userItem) => userItem.product_item_key === product.key
       )
