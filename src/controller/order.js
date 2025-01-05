@@ -33,6 +33,7 @@ const {
   updateTrxIdQuery,
   getHistoryOrderQuery,
   getOrderByUserTrxidQuery,
+  getOrderUserQuery,
 } = require('../model/order')
 const { getUserByApiKeyQuery } = require('../model/user')
 const {
@@ -373,11 +374,10 @@ const createPayment = async (req, res) => {
         statusCode: 404,
       })
 
-    const [userSelected] = await getUserByApiKeyQuery(token)
-    const [orderSelected] = await getOrderByUserTrxidQuery(
-      trx_id,
-      userSelected[0].id
-    )
+    const [orderSelected] = await getOrderUserQuery({
+      apiKey: token,
+      invoice: trx_id
+    })
 
     if (orderSelected.length === 0)
       return errorResponse({
@@ -387,10 +387,6 @@ const createPayment = async (req, res) => {
       })
 
     const orderRecord = orderSelected[0]
-    const [productSelected] = await getProductByBrandKeyQuery(
-      orderRecord.brand_key
-    )
-    const productRecord = productSelected[0]
 
     if (orderRecord.status === 'success')
       return successResponse({
@@ -401,16 +397,16 @@ const createPayment = async (req, res) => {
           status: 'success',
           transaction_id: orderRecord.invoice,
           total_price: orderRecord.total_price,
-          imageUrl: productRecord.image_url,
+          imageUrl: orderRecord.image_url,
           itemName: orderRecord.variation_key,
-          productName: productRecord.name,
+          productName: orderRecord.name,
           data: orderRecord.data,
           createdAt: orderRecord.created_at,
           activeTab: 2,
         },
       })
 
-    if (orderSelected[0].status === 'refund')
+    if (orderRecord.status === 'refund')
       return successResponse({
         res,
         message: 'Pesanan Gagal',
@@ -419,9 +415,9 @@ const createPayment = async (req, res) => {
           status: 'refund',
           transaction_id: orderRecord.invoice,
           total_price: orderRecord.total_price,
-          imageUrl: productRecord.image_url,
+          imageUrl: orderRecord.image_url,
           itemName: orderRecord.variation_key,
-          productName: productRecord.name,
+          productName: orderRecord.name,
           data: orderRecord.data,
           createdAt: orderRecord.created_at,
           activeTab: 2,
@@ -481,19 +477,19 @@ const createPayment = async (req, res) => {
       if (responseOrder.status === 'SUCCESS') {
         await updateTrxIdQuery({
           invoice: orderRecord.invoice,
-          userId: orderRecord.user_id,
+          userId: orderRecord.id,
           trxId: responseOrder.data.trx_code,
         })
-        const [balanceSelected] = await getUserBalanceQuery(orderRecord.user_id)
+        const [balanceSelected] = await getUserBalanceQuery(orderRecord.id)
         await updateOrderStatusQuery({
           status: 'success',
           trxId: orderRecord.invoice,
-          userId: orderRecord.user_id,
+          userId: orderRecord.id,
         })
 
         if(balanceSelected.length === 0 ) {
           await updateBalanceUserQuery({
-            userId: orderRecord.user_id,
+            userId: orderRecord.id,
             amount: orderRecord.total_price,
             totalBalance:
             orderRecord.total_price,
@@ -502,7 +498,7 @@ const createPayment = async (req, res) => {
           })
         } else {
           await updateBalanceUserQuery({
-            userId: orderRecord.user_id,
+            userId: orderRecord.id,
             amount: orderRecord.total_price,
             totalBalance:
               Number(orderRecord.total_price) +
@@ -513,7 +509,7 @@ const createPayment = async (req, res) => {
         }
         
         const message = `
-        Halo ${userSelected[0].full_name},
+        Halo ${orderRecord.full_name},
 
 Anda baru saja menerima pesanan baru.
 
@@ -527,7 +523,7 @@ Anda baru saja menerima pesanan baru.
 
 Salam,
 WARDYGITAL INDONESIA`
-        await httpCreateMessage({message: message, phone: formatNomorHPId(userSelected[0].phone_number)})
+        await httpCreateMessage({message: message, phone: formatNomorHPId(orderRecord.phone_number)})
 
         successResponse({
           res,
@@ -537,9 +533,9 @@ WARDYGITAL INDONESIA`
             status: 'success',
             transaction_id: orderRecord.invoice,
             total_price: orderRecord.total_price,
-            imageUrl: productRecord.image_url,
+            imageUrl: orderRecord.image_url,
             itemName: orderRecord.variation_key,
-            productName: productRecord.name,
+            productName: orderRecord.name,
             data: orderRecord.data,
             createdAt: orderRecord.created_at,
             activeTab: 2,
@@ -550,7 +546,7 @@ WARDYGITAL INDONESIA`
       await updateOrderStatusQuery({
         status: 'cancel',
         trxId: orderRecord.invoice,
-        userId: orderRecord.user_id,
+        userId: orderRecord.id,
       })
       return successResponse({
         res,
@@ -570,9 +566,9 @@ WARDYGITAL INDONESIA`
           transaction_id: orderRecord.invoice,
           total_price: orderRecord.total_price,
           qrCode: orderRecord.qr_code,
-          imageUrl: productRecord.image_url,
+          imageUrl: orderRecord.image_url,
           itemName: orderRecord.variation_key,
-          productName: productRecord.name,
+          productName: orderRecord.name,
           data: orderRecord.data,
           createdAt: orderRecord.created_at,
           activeTab: 1,
@@ -595,19 +591,17 @@ const checkStatusProduct = async (req, res) => {
     const authHeader = req.headers['authorization']
     const token = authHeader && authHeader.split(' ')[1]
 
-    const [userSelected] = await getUserByApiKeyQuery(token)
-
     if (!trx_id)
       return errorResponse({
-        res,
-        message: 'Id transaksi tidak ditemukan',
-        statusCode: 400,
-      })
-
-    const [orderSelected] = await getOrderByUserTrxidQuery(
-      trx_id,
-      userSelected[0].id
-    )
+    res,
+    message: 'Id transaksi tidak ditemukan',
+    statusCode: 400,
+  })
+  
+    const [orderSelected] = await getOrderUserQuery({
+      apiKey: token,
+      invoice: trx_id
+    })
 
     if (orderSelected.length === 0)
       return errorResponse({
@@ -642,7 +636,7 @@ const checkStatusProduct = async (req, res) => {
       await updateOrderStatusQuery({
         status: 'refund',
         trxId: orderRecord.invoice,
-        userId: orderRecord.user_id,
+        userId: orderRecord.id,
       })
 
       const responseJson = {
@@ -651,10 +645,10 @@ const checkStatusProduct = async (req, res) => {
         brandKey: orderRecord.brand_key,
         variationKey: orderRecord.variation_key,
         invoice: orderRecord.invoice,
-        quantity: orderRecord.quantity,
+        quantity: 1,
         totalPrice: orderRecord.total_price,
         data: orderRecord.data,
-        status: "refund",
+        status: orderRecord.status,
         date: orderRecord.created_at,
         historyStatus: response?.data.history_status,
         voucherCode: response?.data.detail.voucher_code,
@@ -663,7 +657,7 @@ const checkStatusProduct = async (req, res) => {
 
       return successResponse({
         res,
-        message: `Mohon maaf produk kosong, Pesanan dengan id transaksi ${trx_id} gagal di proses`,
+        message: `Mohon maaf produk kosong, Pesanan dengan id transaksi ${orderRecord.trx_id} gagal di proses`,
         statusCode: 200,
         data: responseJson,
       })
@@ -673,7 +667,7 @@ const checkStatusProduct = async (req, res) => {
       await updateOrderStatusQuery({
         status: 'success',
         trxId: orderRecord.invoice,
-        userId: orderRecord.user_id,
+        userId: orderRecord.id,
       })
 
       const responseJson = {
@@ -682,7 +676,7 @@ const checkStatusProduct = async (req, res) => {
         brandKey: orderRecord.brand_key,
         variationKey: orderRecord.variation_key,
         invoice: orderRecord.invoice,
-        quantity: orderRecord.quantity,
+        quantity: 1,
         totalPrice: orderRecord.total_price,
         data: orderRecord.data,
         status: orderRecord.status,

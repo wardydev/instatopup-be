@@ -117,6 +117,11 @@ const createOrderRestQuery = ({
   ])
 }
 
+const getOrderUserQuery = ({apiKey, invoice}) => {
+  const SQLQuery = "SELECT users.id, users.email, user_website.domain, users.full_name, users.phone_number, users.api_key, sewatopup.order.brand_key, sewatopup.order.qr_code, sewatopup.order.trx_id, sewatopup.order.merchant_id, sewatopup.order.status, sewatopup.order.invoice, sewatopup.order.total_price, sewatopup.product.image_url, sewatopup.order.variation_key,  product.name, product.id AS product_id, sewatopup.order.data, sewatopup.order.created_at FROM `users` join sewatopup.order ON users.id = sewatopup.order.user_id JOIN product ON sewatopup.order.product_id = product.id JOIN user_website ON users.id = user_website.user_id WHERE users.api_key = ? AND sewatopup.order.invoice = ?"
+  return dbPool.execute(SQLQuery, [apiKey, invoice])
+}
+
 module.exports = {
   getDashboardChartsQuery,
   getChartOrderByDayQuery,
@@ -127,4 +132,5 @@ module.exports = {
   getHistoryOrderQuery,
   getOrderByUserTrxidQuery,
   createOrderRestQuery,
+  getOrderUserQuery
 }
